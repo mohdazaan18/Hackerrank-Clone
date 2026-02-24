@@ -31,3 +31,50 @@ export async function createInvitations(
         next(error);
     }
 }
+
+// ─── Get Invitations For Test ───────────────────────────────────
+
+export async function getInvitationsByTestId(
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> {
+    try {
+        const invitations = await invitationService.getInvitationsByTestId(
+            req.params.testId
+        );
+        sendSuccess(res, invitations);
+    } catch (error) {
+        next(error);
+    }
+}
+
+// ─── Delete Invitation ──────────────────────────────────────────
+
+export async function deleteInvitation(
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> {
+    try {
+        await invitationService.deleteInvitation(req.params.id);
+        sendSuccess(res, { deleted: true });
+    } catch (error) {
+        next(error);
+    }
+}
+
+// ─── Resend Invitation ──────────────────────────────────────────
+
+export async function resendInvitation(
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> {
+    try {
+        await invitationService.resendInvitation(req.params.id);
+        sendSuccess(res, { resent: true });
+    } catch (error) {
+        next(error);
+    }
+}

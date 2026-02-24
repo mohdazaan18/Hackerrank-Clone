@@ -1,7 +1,12 @@
 import { Router } from "express";
-import { createTest, getAllTests, getTestById } from "../controllers/test.controller";
-import { authenticate } from "../middleware/auth";
-import { requireAdmin } from "../middleware/auth";
+import {
+    createTest,
+    getAllTests,
+    getTestById,
+    updateTest,
+    deleteTest,
+} from "../controllers/test.controller";
+import { authenticate, requireAdmin } from "../middleware/auth";
 
 const router = Router();
 
@@ -11,7 +16,13 @@ router.post("/", authenticate, requireAdmin, createTest);
 // GET /tests — list all tests (admin only)
 router.get("/", authenticate, requireAdmin, getAllTests);
 
-// GET /tests/:id — get test details (admin only)
-router.get("/:id", authenticate, requireAdmin, getTestById);
+// GET /tests/:id — get test details (any authenticated user)
+router.get("/:id", authenticate, getTestById);
+
+// PUT /tests/:id — update test (admin only)
+router.put("/:id", authenticate, requireAdmin, updateTest);
+
+// DELETE /tests/:id — delete test with cascade (admin only)
+router.delete("/:id", authenticate, requireAdmin, deleteTest);
 
 export default router;

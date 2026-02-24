@@ -21,7 +21,7 @@ export async function createInvitations(testId: string, emails: string[]) {
     const invitationDocs = emails.map((email) => ({
         testId: new mongoose.Types.ObjectId(testId),
         email: email.toLowerCase().trim(),
-        token: crypto.randomUUID(),
+        token: crypto.randomBytes(32).toString("hex"),
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
         used: false,
     }));
@@ -36,4 +36,64 @@ export async function createInvitations(testId: string, emails: string[]) {
     await Promise.allSettled(emailPromises);
 
     return invitations;
+}
+
+export async function getInvitationsByTestId(testId: string) {
+    if (!mongoose.Types.ObjectId.isValid(testId)) {
+        throw createAppError("Invalid test ID", 400);
+    }
+
+    const testExists = await Test.exists({ _id: testId });
+    if (!testExists) {
+        throw createAppError("Test not found", 404);
+    }
+
+    const invitations = await Invitation.find({ testId })
+        .sort({ createdAt: -1 })
+        .lean();
+
+    return invitations;
+}
+
+export async function deleteInvitation(id: string) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        throw createAppError("Invalid invitation ID", 400);
+    }
+
+    const invitation = await Invitation.findById(id);
+    if (!invitation) {
+        throw createAppError("Invitation not found", 404);
+    }
+
+    if (invitation.used) {
+        throw createAppError("Cannot delete an invitation that has already been used", 400);
+    }
+
+    await Invitation.deleteOne({ _id: id });
+}
+
+export async function resendInvitation(id: string) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        throw createAppError("Invalid invitation ID", 400);
+    }
+
+    const invitation = await Invitation.findById(id);
+    if (!invitation) {
+        throw createAppError("Invitation not found", 404);
+    }
+
+    if (invitation.used) {
+        throw createAppError("Invitation has already been used", 400);
+    }
+
+    if (new Date() > invitation.expiresAt) {
+        throw createAppError("Invitation has expired", 400);
+    }
+
+    const test = await Test.findById(invitation.testId);
+    if (!test) {
+        throw createAppError("Test not found for this invitation", 404);
+    }
+
+    await sendInviteEmail(invitation.email, invitation.token, test.title);
 }
