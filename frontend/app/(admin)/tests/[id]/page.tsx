@@ -5,9 +5,10 @@ import { TestDetailClient } from "./test-detail-client";
  * Route: /tests/[id]
  */
 interface TestDetailPageProps {
-    params: { id: string };
+    params: Promise<{ id: string }>;
 }
 
-export default function TestDetailPage({ params }: TestDetailPageProps) {
-    return <TestDetailClient testId={params.id} />;
+export default async function TestDetailPage({ params }: TestDetailPageProps) {
+    const { id } = await params;
+    return <TestDetailClient testId={id} />;
 }

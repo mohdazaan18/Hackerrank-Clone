@@ -113,18 +113,11 @@ export async function computeFinalScore(submissionId: string): Promise<void> {
         );
 
         // 5. Apply formula
-        const finalScore = parseFloat(
-            (
-                0.50 * testCaseScore +
-                0.20 * aiQualityScore +
-                0.10 * executionEfficiency +
-                0.10 * timeScore +
-                0.10 * behaviorIntegrityScore
-            ).toFixed(2)
-        );
+        const finalScore = Math.max(0, parseFloat(testCaseScore.toFixed(2)));
+        const scorePercentage = finalScore;
 
         // 6. Store in submission
-        await Submission.findByIdAndUpdate(submissionId, { finalScore });
+        await Submission.findByIdAndUpdate(submissionId, { finalScore, scorePercentage });
 
         console.log(
             `[Ranking] Score computed for ${submissionId}: ` +
@@ -152,9 +145,9 @@ export async function getRankingsByTestId(testId: string) {
         testId: new mongoose.Types.ObjectId(testId),
     })
         .sort({ finalScore: -1 })
-        .select("candidateId testId testCaseScore executionTime memory finalScore status createdAt")
+        .select("candidateId testId testCaseScore scorePercentage executionTime memory finalScore status createdAt")
         .populate("candidateId", "email")
         .lean();
 
-    return rankings;
+    return rankings || [];
 }

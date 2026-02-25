@@ -12,14 +12,15 @@ export async function createSubmission(
     candidateId: string,
     data: CreateSubmissionInput
 ) {
-    const { testId, code, language, tabSwitchCount, pasteCount, firstTypedAt, firstSubmissionAt, totalActiveTime } = data;
+    const { testId, code, language, tabSwitchCount, blurCount, pasteCount, copyCount, firstTypedAt, firstSubmissionAt } = data;
+    let { totalActiveTime } = data;
 
     // 1. Validate testId format
     if (!mongoose.Types.ObjectId.isValid(testId)) {
         throw createAppError("Invalid test ID", 400);
     }
 
-    // 2. Check for existing submission (submission lock)
+    // 2. Check for existing submission (submission lock — fast path)
     const existingSubmission = await Submission.findOne({
         candidateId: new mongoose.Types.ObjectId(candidateId),
         testId: new mongoose.Types.ObjectId(testId),
@@ -49,9 +50,53 @@ export async function createSubmission(
     const deadline = new Date(candidate.createdAt.getTime() + timeLimitMs);
     const now = new Date();
 
+    // 5. Cross-validate totalActiveTime against server-side elapsed time
+    const actualElapsedMs = now.getTime() - candidate.createdAt.getTime();
+    if (totalActiveTime > actualElapsedMs + 5000) {
+        // Client reported more active time than physically possible — clamp to actual
+        totalActiveTime = actualElapsedMs;
+    }
+
     if (now > deadline) {
         // Still create the submission but mark as timed_out
-        const timedOutSubmission = await Submission.create({
+        try {
+            const timedOutSubmission = await Submission.create({
+                candidateId: new mongoose.Types.ObjectId(candidateId),
+                testId: new mongoose.Types.ObjectId(testId),
+                code,
+                language,
+                testCaseScore: 0,
+                executionTime: 0,
+                memory: 0,
+                finalScore: 0,
+                status: "timed_out",
+                tabSwitchCount,
+                blurCount,
+                pasteCount,
+                copyCount,
+                firstTypedAt,
+                firstSubmissionAt,
+                totalActiveTime,
+            });
+
+            // Deactivate candidate (submission lock)
+            candidate.isActive = false;
+            await candidate.save();
+
+            return timedOutSubmission;
+        } catch (err: unknown) {
+            // Handle duplicate key error from unique compound index (race condition)
+            if (err && typeof err === "object" && "code" in err && (err as { code: number }).code === 11000) {
+                throw createAppError("You have already submitted for this test", 409);
+            }
+            throw err;
+        }
+    }
+
+    // 6. Create submission with pending status
+    let submission;
+    try {
+        submission = await Submission.create({
             candidateId: new mongoose.Types.ObjectId(candidateId),
             testId: new mongoose.Types.ObjectId(testId),
             code,
@@ -60,44 +105,40 @@ export async function createSubmission(
             executionTime: 0,
             memory: 0,
             finalScore: 0,
-            status: "timed_out",
+            status: "pending",
             tabSwitchCount,
+            blurCount,
             pasteCount,
+            copyCount,
             firstTypedAt,
             firstSubmissionAt,
             totalActiveTime,
         });
-
-        // Deactivate candidate (submission lock)
-        candidate.isActive = false;
-        await candidate.save();
-
-        return timedOutSubmission;
+    } catch (err: unknown) {
+        // Handle duplicate key error from unique compound index (race condition)
+        if (err && typeof err === "object" && "code" in err && (err as { code: number }).code === 11000) {
+            throw createAppError("You have already submitted for this test", 409);
+        }
+        throw err;
     }
 
-    // 5. Create submission with pending status
-    const submission = await Submission.create({
-        candidateId: new mongoose.Types.ObjectId(candidateId),
-        testId: new mongoose.Types.ObjectId(testId),
-        code,
-        language,
-        testCaseScore: 0,
-        executionTime: 0,
-        memory: 0,
-        finalScore: 0,
-        status: "pending",
-        tabSwitchCount,
-        pasteCount,
-        firstTypedAt,
-        firstSubmissionAt,
-        totalActiveTime,
-    });
-
-    // 6. Deactivate candidate (submission lock — prevents re-submission)
+    // 7. Deactivate candidate (submission lock — prevents re-submission)
     candidate.isActive = false;
     await candidate.save();
 
-    // 7. Trigger Judge0 evaluation (non-blocking)
+    // 8. Link intermediate snapshots to this final submission
+    await mongoose.models.CodeSnapshot?.findOneAndUpdate(
+        {
+            candidateId: new mongoose.Types.ObjectId(candidateId),
+            testId: new mongoose.Types.ObjectId(testId),
+            submissionId: { $exists: false },
+        },
+        {
+            $set: { submissionId: submission._id },
+        }
+    );
+
+    // 9. Trigger Judge0 evaluation (non-blocking)
     evaluateSubmission(submission._id.toString()).catch((err) =>
         console.error("[Judge] Background evaluation error:", err)
     );

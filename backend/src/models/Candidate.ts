@@ -37,4 +37,8 @@ const candidateSchema = new Schema<ICandidate>(
     }
 );
 
+// Indexes for auth service queries
+candidateSchema.index({ inviteId: 1 });
+candidateSchema.index({ email: 1, isActive: 1 });
+
 export const Candidate = mongoose.model<ICandidate>("Candidate", candidateSchema);

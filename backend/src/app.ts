@@ -12,7 +12,7 @@ app.use(
     cors({
         origin: process.env.NODE_ENV === "production"
             ? process.env.CORS_ORIGIN || false
-            : "http://localhost:3000",
+            : process.env.CORS_ORIGIN || "http://localhost:3000",
         credentials: true,
     })
 );
@@ -32,10 +32,16 @@ import authRoutes from "./routes/auth.routes";
 import testRoutes from "./routes/test.routes";
 import invitationRoutes from "./routes/invitation.routes";
 import submissionRoutes from "./routes/submission.routes";
+import aiRoutes from "./routes/ai.routes";
+import rankingRoutes from "./routes/ranking.routes";
+import replayRoutes from "./routes/replay.routes";
 app.use("/api/auth", authRoutes);
 app.use("/api/tests", testRoutes);
 app.use("/api/invitations", invitationRoutes);
 app.use("/api/submissions", submissionRoutes);
+app.use("/api/ai-report", aiRoutes);
+app.use("/api/ranking", rankingRoutes);
+app.use("/api/replay", replayRoutes);
 
 // --- Centralized error handler (must be last) ---
 app.use(errorHandler);

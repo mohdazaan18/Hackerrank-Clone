@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { createSubmissionSchema } from "../validators/submission.validator";
 import * as submissionService from "../services/submission.service";
 import { sendSuccess, sendError } from "../utils/apiResponse";
-import { CandidateTokenPayload } from "../services/auth.service";
+import { CandidateTokenPayload, TokenPayload } from "../services/auth.service";
 
 // ─── Create Submission ──────────────────────────────────────────
 
@@ -44,6 +44,22 @@ export async function getSubmissionById(
         const submission = await submissionService.getSubmissionById(
             req.params.id
         );
+
+        // IDOR protection: candidates can only view their own submissions
+        const user = req.user as TokenPayload;
+        if (user.role === "candidate") {
+            // candidateId may be populated (object with _id) or a raw ObjectId
+            const rawCandidateId = submission.candidateId as any;
+            const candidateIdStr =
+                typeof rawCandidateId === "object" && rawCandidateId !== null
+                    ? (rawCandidateId._id || rawCandidateId).toString()
+                    : String(rawCandidateId);
+            if (candidateIdStr !== user.id) {
+                sendError(res, "Forbidden", 403);
+                return;
+            }
+        }
+
         sendSuccess(res, submission);
     } catch (error) {
         next(error);

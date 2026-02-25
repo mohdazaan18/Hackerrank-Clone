@@ -1,257 +1,469 @@
+import mongoose from "mongoose";
 import { getEnv } from "../config/env";
 import { Submission } from "../models/Submission";
-import { Test } from "../models/Test";
-import { ITestCase } from "../models/Test";
+import { Test, ITestCase } from "../models/Test";
+import { generateAiReport, generateAiRecommendation } from "./ai.service";
+import { createAppError } from "../utils/apiResponse";
 
-// ─── Judge0 Language ID Map ─────────────────────────────────────
+// ─── Execute Response Type ──────────────────────────────────────
 
-const LANGUAGE_MAP: Record<string, number> = {
-    javascript: 63,  // Node.js
-    python: 71,      // Python 3
-    java: 62,        // Java (OpenJDK 13)
-    cpp: 54,         // C++ (GCC 9.2.0)
-    c: 50,           // C (GCC 9.2.0)
-    typescript: 74,  // TypeScript
-    ruby: 72,        // Ruby
-    go: 60,          // Go
-    rust: 73,        // Rust
-    csharp: 51,      // C#
-    php: 68,         // PHP
-    swift: 83,       // Swift
-    kotlin: 78,      // Kotlin
+export interface TestCaseResult {
+  caseNumber: number;
+  passed: boolean;
+  input: string;
+  expectedOutput: string;
+  actualOutput: string;
+  error?: string;
+  errorType?: "compile" | "runtime" | "timeout";
+  executionTime?: number;
+  memory?: number;
+}
+
+export interface ExecuteCodeResponse {
+  success: boolean;
+  totalCases: number;
+  passedCases: number;
+  score: number;
+  scorePercentage: number;
+  results: TestCaseResult[];
+}
+
+// ─── JDoodle Language Map ───────────────────────────────────────
+
+export const JDOODLE_LANGUAGE_MAP: Record<string, { lang: string; version: string }> = {
+  javascript: { lang: "nodejs", version: "0" },
+  python: { lang: "python3", version: "0" },
+  java: { lang: "java", version: "0" },
+  cpp: { lang: "cpp17", version: "0" },
+  c: { lang: "c", version: "0" },
+  typescript: { lang: "nodejs", version: "0" },
+  go: { lang: "go", version: "0" },
+  rust: { lang: "rust", version: "0" },
 };
 
-const JUDGE0_BASE_URL = "https://judge0-ce.p.rapidapi.com";
-const MAX_POLL_ATTEMPTS = 10;
-const INITIAL_POLL_DELAY_MS = 1000;
+const JDOODLE_API_URL = "https://api.jdoodle.com/v1/execute";
+const TIMEOUT_MS = 15_000; // 15 seconds per test case
 
-// ─── Judge0 API Types ───────────────────────────────────────────
+// ─── Wrap Candidate Code with stdin Handling ────────────────────
+// Candidate writes only solve(). Backend injects IO wrapper.
 
-interface Judge0SubmissionResponse {
-    token: string;
+export function wrapCode(candidateCode: string, language: string): string {
+  const lang = language.toLowerCase();
+
+  switch (lang) {
+    case "javascript":
+    case "typescript":
+      return `${candidateCode}
+
+// --- Auto-injected IO wrapper ---
+process.stdin.resume();
+process.stdin.setEncoding("utf-8");
+let __input = "";
+process.stdin.on("data", (c) => { __input += c; });
+process.stdin.on("end", () => {
+  const lines = __input.trim().split("\n");
+  const result = solve(lines);
+  if (result !== undefined && result !== null) console.log(result);
+});
+`;
+
+    case "python":
+      return `${candidateCode}
+
+# --- Auto-injected IO wrapper ---
+import sys as __sys
+__input_data = __sys.stdin.read().strip().split("\n")
+__result = solve(__input_data)
+if __result is not None:
+    print(__result)
+`;
+
+    case "java":
+      return `import java.util.*;
+import java.io.*;
+
+public class Main {
+${candidateCode}
+
+    // --- Auto-injected IO wrapper ---
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        List<String> input = new ArrayList<>();
+        while (sc.hasNextLine()) {
+            String line = sc.nextLine();
+            input.add(line);
+        }
+        Main m = new Main();
+        // Try static method first
+        System.out.println(solve(input));
+    }
+}
+`;
+
+    case "cpp":
+      return `#include <bits/stdc++.h>
+using namespace std;
+
+${candidateCode}
+
+// --- Auto-injected IO wrapper ---
+int main() {
+    vector<string> input;
+    string line;
+    while (getline(cin, line)) {
+        input.push_back(line);
+    }
+    cout << solve(input) << endl;
+    return 0;
+}
+`;
+
+    case "c":
+      return `#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+${candidateCode}
+
+// --- Auto-injected IO wrapper ---
+int main() {
+    char line[4096];
+    char *lines[1024];
+    int count = 0;
+    while (fgets(line, sizeof(line), stdin)) {
+        line[strcspn(line, "\n")] = 0;
+        lines[count] = strdup(line);
+        count++;
+    }
+    char* result = solve(lines, count);
+    if (result) printf("%s\n", result);
+    for (int i = 0; i < count; i++) free(lines[i]);
+    return 0;
+}
+`;
+
+    case "go":
+      return `package main
+
+import (
+    "bufio"
+    "fmt"
+    "os"
+)
+
+${candidateCode}
+
+// --- Auto-injected IO wrapper ---
+func main() {
+    scanner := bufio.NewScanner(os.Stdin)
+    var lines []string
+    for scanner.Scan() {
+        lines = append(lines, scanner.Text())
+    }
+    fmt.Println(solve(lines))
+}
+`;
+
+    case "rust":
+      return `use std::io::{self, Read};
+
+${candidateCode}
+
+// --- Auto-injected IO wrapper ---
+fn main() {
+    let mut input = String::new();
+    io::stdin().read_to_string(&mut input).unwrap();
+    let lines: Vec<&str> = input.trim().split('\n').collect();
+    println!("{}", solve(lines));
+}
+`;
+
+    default:
+      // Unknown language — send as-is
+      return candidateCode;
+  }
 }
 
-interface Judge0Result {
-    status: {
-        id: number;
-        description: string;
-    };
-    stdout: string | null;
-    stderr: string | null;
-    compile_output: string | null;
-    time: string | null;
-    memory: number | null;
+// ─── JDoodle API Types ──────────────────────────────────────────
+
+interface JDoodleResponse {
+  output: string;
+  statusCode: number;
+  memory: string | null;
+  cpuTime: string | null;
+  error?: string;
 }
 
-// Status IDs: 1=In Queue, 2=Processing, 3=Accepted, 4=Wrong Answer,
-// 5=Time Limit Exceeded, 6=Compilation Error, etc.
-const PROCESSING_STATUSES = [1, 2];
+// ─── Get Language ID (legacy compat — now returns string key) ───
 
-// ─── Submit Code to Judge0 ──────────────────────────────────────
+export function getLanguageId(language: string): string | undefined {
+  const key = language.toLowerCase();
+  return JDOODLE_LANGUAGE_MAP[key] ? key : undefined;
+}
 
-async function submitToJudge0(
-    sourceCode: string,
-    languageId: number,
-    stdin: string
-): Promise<string> {
-    const env = getEnv();
+// ─── Detect Error Type from JDoodle Output ──────────────────────
 
-    const response = await fetch(`${JUDGE0_BASE_URL}/submissions?base64_encoded=true&wait=false`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-RapidAPI-Key": env.JUDGE_API_KEY,
-            "X-RapidAPI-Host": "judge0-ce.p.rapidapi.com",
-        },
-        body: JSON.stringify({
-            source_code: Buffer.from(sourceCode).toString("base64"),
-            language_id: languageId,
-            stdin: Buffer.from(stdin).toString("base64"),
-        }),
+function detectErrorType(
+  output: string,
+  statusCode: number,
+): { errorType: "compile" | "runtime" | "timeout"; error: string } | null {
+  if (statusCode !== 200) {
+    if (output.includes("compilation") || output.includes("error:")) {
+      return { errorType: "compile", error: output.trim() };
+    }
+    return { errorType: "runtime", error: output.trim() || "Runtime error" };
+  }
+  return null;
+}
+
+// ─── Execute Single Test Case via JDoodle ───────────────────────
+
+export async function callJDoodle(
+  code: string,
+  language: string,
+  stdin: string,
+): Promise<JDoodleResponse> {
+  const env = getEnv();
+  const langConfig = JDOODLE_LANGUAGE_MAP[language.toLowerCase()];
+
+  if (!langConfig) {
+    throw new Error(`Unsupported language: ${language}`);
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
+
+  try {
+    const response = await fetch(JDOODLE_API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        clientId: env.JDOODLE_CLIENT_ID,
+        clientSecret: env.JDOODLE_CLIENT_SECRET,
+        script: code,
+        language: langConfig.lang,
+        versionIndex: langConfig.version,
+        stdin,
+      }),
+      signal: controller.signal,
     });
 
+    if (response.status === 429) {
+      throw new Error("Execution limit reached. Try later.");
+    }
+
     if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Judge0 submission failed (${response.status}): ${errorText}`);
+      const text = await response.text();
+      throw new Error(`JDoodle API error (${response.status}): ${text}`);
     }
 
-    const data = (await response.json()) as Judge0SubmissionResponse;
-    return data.token;
-}
+    const data = (await response.json()) as JDoodleResponse;
 
-// ─── Poll Judge0 for Result ─────────────────────────────────────
-
-async function pollJudge0Result(token: string): Promise<Judge0Result> {
-    const env = getEnv();
-    let delay = INITIAL_POLL_DELAY_MS;
-
-    for (let attempt = 0; attempt < MAX_POLL_ATTEMPTS; attempt++) {
-        // Wait before polling
-        await new Promise((resolve) => setTimeout(resolve, delay));
-
-        const response = await fetch(
-            `${JUDGE0_BASE_URL}/submissions/${token}?base64_encoded=true&fields=status,stdout,stderr,compile_output,time,memory`,
-            {
-                method: "GET",
-                headers: {
-                    "X-RapidAPI-Key": env.JUDGE_API_KEY,
-                    "X-RapidAPI-Host": "judge0-ce.p.rapidapi.com",
-                },
-            }
-        );
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Judge0 poll failed (${response.status}): ${errorText}`);
-        }
-
-        const result = (await response.json()) as Judge0Result;
-
-        // If still processing, increase delay (exponential backoff)
-        if (PROCESSING_STATUSES.includes(result.status.id)) {
-            delay = Math.min(delay * 2, 8000); // cap at 8s
-            continue;
-        }
-
-        // Decode base64 fields
-        return {
-            ...result,
-            stdout: result.stdout ? Buffer.from(result.stdout, "base64").toString("utf-8") : null,
-            stderr: result.stderr ? Buffer.from(result.stderr, "base64").toString("utf-8") : null,
-            compile_output: result.compile_output
-                ? Buffer.from(result.compile_output, "base64").toString("utf-8")
-                : null,
-        };
+    if (data.error) {
+      if (data.error.includes("Daily limit")) {
+        throw new Error("Execution limit reached. Try later.");
+      }
+      throw new Error(data.error);
     }
 
-    // Exhausted all attempts
-    throw new Error(`Judge0 polling timed out after ${MAX_POLL_ATTEMPTS} attempts for token: ${token}`);
+    return data;
+  } catch (err) {
+    if (err instanceof DOMException && err.name === "AbortError") {
+      throw new Error("Execution timed out (15s limit local guard)");
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 // ─── Compare Output ─────────────────────────────────────────────
 
-function compareOutput(actual: string | null, expected: string): boolean {
-    if (actual === null) return false;
-    return actual.trim() === expected.trim();
+export function compareOutput(
+  actual: string | null,
+  expected: string,
+): boolean {
+  if (actual === null) return false;
+  const normalize = (s: string) => s.replace(/\r\n/g, "\n").trim();
+  return normalize(actual) === normalize(expected);
+}
+
+// ─── Execute Code (No DB save) ──────────────────────────────────
+
+export async function executeCode(data: {
+  testId: string;
+  code: string;
+  language: string;
+}): Promise<ExecuteCodeResponse> {
+  // REQUIREMENT: Log statement
+  console.log("Using JDoodle execution engine");
+
+  const { testId, code, language } = data;
+
+  if (!mongoose.Types.ObjectId.isValid(testId)) {
+    throw createAppError("Invalid test ID", 400);
+  }
+  if (Buffer.byteLength(code, "utf8") > 50_000) {
+    throw createAppError("Code must be under 50KB", 400);
+  }
+
+  const langKey = language.toLowerCase();
+  if (!JDOODLE_LANGUAGE_MAP[langKey]) {
+    throw createAppError(`Unsupported language: ${language}`, 400);
+  }
+
+  const test = await Test.findById(testId);
+  if (!test) throw createAppError("Test not found", 404);
+  const testCases: ITestCase[] = test.testCases;
+  if (testCases.length === 0) throw createAppError("Test has no test cases", 400);
+
+  const results: TestCaseResult[] = [];
+  let passedCases = 0;
+  let compilationError = false;
+
+  for (let i = 0; i < testCases.length; i++) {
+    const tc = testCases[i];
+    const caseNumber = i + 1;
+    const result: TestCaseResult = {
+      caseNumber,
+      passed: false,
+      input: tc.input,
+      expectedOutput: tc.expectedOutput,
+      actualOutput: "",
+    };
+
+    if (compilationError) {
+      result.errorType = "compile";
+      result.error = "Skipped — compilation error in previous test case";
+      results.push(result);
+      continue;
+    }
+
+    try {
+      const wrappedCode = wrapCode(code, langKey);
+      const jdResult = await callJDoodle(wrappedCode, langKey, tc.input);
+
+      if (jdResult.statusCode !== 200) {
+        const errInfo = detectErrorType(jdResult.output || "", jdResult.statusCode);
+        result.errorType = errInfo ? errInfo.errorType : "runtime";
+        result.error = errInfo ? errInfo.error : "Unknown error";
+        if (result.errorType === "compile") compilationError = true;
+        result.actualOutput = (jdResult.output || "").trim();
+        results.push(result);
+        continue;
+      }
+
+      result.actualOutput = (jdResult.output || "").trim();
+      result.executionTime = jdResult.cpuTime ? parseFloat(jdResult.cpuTime) : 0;
+      result.memory = jdResult.memory ? parseInt(jdResult.memory, 10) : 0;
+
+      if (compareOutput(jdResult.output, tc.expectedOutput)) {
+        result.passed = true;
+        passedCases++;
+      }
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : "Execution failed";
+      if (msg.includes("timed out")) {
+        result.errorType = "timeout";
+        result.error = "Time limit exceeded (15s)";
+      } else if (msg.includes("limit reached")) {
+        result.errorType = "runtime";
+        result.error = msg;
+        compilationError = true;
+      } else {
+        result.errorType = "runtime";
+        result.error = msg;
+      }
+    }
+
+    results.push(result);
+  }
+
+  const score = testCases.length > 0 ? Math.round((passedCases / testCases.length) * 100) : 0;
+  const scorePercentage = testCases.length > 0 ? Math.round((passedCases / testCases.length) * 10000) / 100 : 0;
+
+  return { success: true, totalCases: testCases.length, passedCases, score, scorePercentage, results };
 }
 
 // ─── Evaluate Submission ────────────────────────────────────────
 
 export async function evaluateSubmission(submissionId: string): Promise<void> {
-    try {
-        // 1. Fetch submission and test
-        const submission = await Submission.findById(submissionId);
-        if (!submission) {
-            console.error(`[Judge] Submission not found: ${submissionId}`);
-            return;
-        }
+  // REQUIREMENT: Log statement
+  console.log("Using JDoodle execution engine");
 
-        // Skip evaluation for timed-out submissions
-        if (submission.status === "timed_out") {
-            return;
-        }
-
-        const test = await Test.findById(submission.testId);
-        if (!test) {
-            console.error(`[Judge] Test not found for submission: ${submissionId}`);
-            return;
-        }
-
-        // 2. Resolve language ID
-        const languageId = LANGUAGE_MAP[submission.language.toLowerCase()];
-        if (!languageId) {
-            console.error(`[Judge] Unsupported language: ${submission.language}`);
-            await Submission.findByIdAndUpdate(submissionId, {
-                status: "completed",
-                testCaseScore: 0,
-            });
-            return;
-        }
-
-        // 3. Submit each test case to Judge0
-        const testCases: ITestCase[] = test.testCases;
-        const tokens: string[] = [];
-
-        for (const tc of testCases) {
-            try {
-                const token = await submitToJudge0(submission.code, languageId, tc.input);
-                tokens.push(token);
-            } catch (error) {
-                console.error(`[Judge] Failed to submit test case:`, error);
-                tokens.push(""); // placeholder for failed submission
-            }
-        }
-
-        // 4. Poll results for each test case
-        let passed = 0;
-        let totalTime = 0;
-        let maxMemory = 0;
-        let validResults = 0;
-
-        for (let i = 0; i < testCases.length; i++) {
-            const token = tokens[i];
-            if (!token) {
-                // Submission failed for this test case
-                continue;
-            }
-
-            try {
-                const result = await pollJudge0Result(token);
-
-                // Track execution metrics
-                const execTime = result.time ? parseFloat(result.time) : 0;
-                const execMemory = result.memory || 0;
-
-                totalTime += execTime;
-                maxMemory = Math.max(maxMemory, execMemory);
-                validResults++;
-
-                // Compare output
-                if (compareOutput(result.stdout, testCases[i].expectedOutput)) {
-                    passed++;
-                }
-            } catch (error) {
-                console.error(`[Judge] Failed to poll test case ${i}:`, error);
-            }
-        }
-
-        // 5. Compute scores
-        const testCaseScore = testCases.length > 0
-            ? Math.round((passed / testCases.length) * 100)
-            : 0;
-        const avgExecutionTime = validResults > 0
-            ? parseFloat((totalTime / validResults).toFixed(4))
-            : 0;
-
-        // 6. Update submission
-        await Submission.findByIdAndUpdate(submissionId, {
-            testCaseScore,
-            executionTime: avgExecutionTime,
-            memory: maxMemory,
-            status: "completed",
-        });
-
-        console.log(
-            `[Judge] Evaluation complete for ${submissionId}: ` +
-            `${passed}/${testCases.length} passed, score=${testCaseScore}`
-        );
-    } catch (error) {
-        console.error(`[Judge] Evaluation failed for ${submissionId}:`, error);
-
-        // Mark as completed even on failure to avoid stuck "pending" state
-        try {
-            await Submission.findByIdAndUpdate(submissionId, {
-                status: "completed",
-                testCaseScore: 0,
-            });
-        } catch (updateError) {
-            console.error(`[Judge] Failed to update submission status:`, updateError);
-        }
+  try {
+    const submission = await Submission.findById(submissionId).populate("testId");
+    if (!submission) {
+      console.error(`[JDoodle] Submission not found: ${submissionId}`);
+      return;
     }
-}
 
-// ─── Get Language ID (utility export) ───────────────────────────
+    const test = submission.testId as unknown as InstanceType<typeof Test>;
+    if (!test || !test.testCases) {
+      console.error(`[JDoodle] Test not found for submission: ${submissionId}`);
+      return;
+    }
 
-export function getLanguageId(language: string): number | undefined {
-    return LANGUAGE_MAP[language.toLowerCase()];
+    const langKey = submission.language.toLowerCase();
+    if (!JDOODLE_LANGUAGE_MAP[langKey]) {
+      console.error(`[JDoodle] Unsupported language: ${submission.language}`);
+      await Submission.findByIdAndUpdate(submissionId, { status: "completed", testCaseScore: 0 });
+      return;
+    }
+
+    const testCases: ITestCase[] = test.testCases;
+    let passed = 0;
+    let totalCpuTime = 0;
+    let maxMemory = 0;
+    let validResults = 0;
+    let compilationError = false;
+
+    for (const tc of testCases) {
+      if (compilationError) break;
+
+      try {
+        const wrappedCode = wrapCode(submission.code, langKey);
+        const result = await callJDoodle(wrappedCode, langKey, tc.input);
+
+        const errInfo = detectErrorType(result.output || "", result.statusCode);
+        if (errInfo) {
+          if (errInfo.errorType === "compile") compilationError = true;
+          continue;
+        }
+
+        const cpuTime = result.cpuTime ? parseFloat(result.cpuTime) : 0;
+        const memory = result.memory ? parseInt(result.memory, 10) : 0;
+        totalCpuTime += cpuTime;
+        maxMemory = Math.max(maxMemory, memory);
+        validResults++;
+
+        if (compareOutput(result.output, tc.expectedOutput)) passed++;
+      } catch (error) {
+        console.error(`[JDoodle] Test case failed:`, error);
+      }
+    }
+
+    const testCaseScore = testCases.length > 0 ? Math.round((passed / testCases.length) * 100) : 0;
+    const scorePercentage = testCases.length > 0 ? Math.round((passed / testCases.length) * 10000) / 100 : 0;
+    const avgExecutionTime = validResults > 0 ? parseFloat((totalCpuTime / validResults).toFixed(4)) : 0;
+
+    await Submission.findByIdAndUpdate(submissionId, {
+      testCaseScore,
+      scorePercentage,
+      finalScore: scorePercentage, // Fixed finalScore from previous task
+      executionTime: avgExecutionTime,
+      memory: maxMemory,
+      status: "completed",
+    });
+
+    generateAiReport(submissionId).catch((err) => console.error("[JDoodle] AI report error:", err));
+    generateAiRecommendation(submissionId).catch((err) => console.error("[JDoodle] AI recommendation error:", err));
+  } catch (error) {
+    console.error(`[JDoodle] Evaluation failed for ${submissionId}:`, error);
+    try {
+      await Submission.findByIdAndUpdate(submissionId, { status: "completed", testCaseScore: 0 });
+    } catch (e) {
+      console.error(`[JDoodle] Failed to update submission:`, e);
+    }
+  }
 }

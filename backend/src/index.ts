@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { validateEnv } from "./config/env";
 
 // Validate environment variables before anything else
@@ -20,5 +21,16 @@ async function startServer(): Promise<void> {
         process.exit(1);
     }
 }
+
+// ─── Process Error Handlers ─────────────────────────────────────
+
+process.on("unhandledRejection", (reason, promise) => {
+    console.error("Unhandled Rejection at:", promise, "reason:", reason);
+});
+
+process.on("uncaughtException", (error) => {
+    console.error("Uncaught Exception:", error);
+    process.exit(1);
+});
 
 startServer();

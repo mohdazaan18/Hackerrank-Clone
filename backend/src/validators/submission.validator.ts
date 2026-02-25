@@ -6,7 +6,8 @@ export const createSubmissionSchema = z.object({
         .min(1, { message: "Test ID cannot be empty" }),
     code: z
         .string({ required_error: "Code is required" })
-        .min(1, { message: "Code cannot be empty" }),
+        .min(1, { message: "Code cannot be empty" })
+        .max(50000, { message: "Code must be under 50,000 characters" }),
     language: z
         .string({ required_error: "Language is required" })
         .min(1, { message: "Language cannot be empty" }),
@@ -15,8 +16,18 @@ export const createSubmissionSchema = z.object({
         .int()
         .min(0)
         .default(0),
+    blurCount: z
+        .number()
+        .int()
+        .min(0)
+        .default(0),
     pasteCount: z
         .number({ required_error: "Paste count is required" })
+        .int()
+        .min(0)
+        .default(0),
+    copyCount: z
+        .number()
         .int()
         .min(0)
         .default(0),

@@ -1,11 +1,12 @@
 import { Router } from "express";
 import {
-    createTest,
-    getAllTests,
-    getTestById,
-    updateTest,
-    deleteTest,
+  createTest,
+  getAllTests,
+  getTestById,
+  updateTest,
+  deleteTest,
 } from "../controllers/test.controller";
+import { executeCode } from "../controllers/execute.controller";
 import { authenticate, requireAdmin } from "../middleware/auth";
 
 const router = Router();
@@ -24,5 +25,8 @@ router.put("/:id", authenticate, requireAdmin, updateTest);
 
 // DELETE /tests/:id — delete test with cascade (admin only)
 router.delete("/:id", authenticate, requireAdmin, deleteTest);
+
+// POST /tests/execute — execute code against test cases (candidates only, no submission save)
+router.post("/execute", authenticate, executeCode);
 
 export default router;
