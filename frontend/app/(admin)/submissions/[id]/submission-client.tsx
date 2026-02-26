@@ -25,7 +25,7 @@ const MonacoEditor = dynamic(() => import("@monaco-editor/react"), {
     ssr: false,
     loading: () => (
         <div className="flex items-center justify-center h-full bg-[#1e1e1e]">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-[var(--accent-primary)] border-t-transparent" />
         </div>
     ),
 });
@@ -66,8 +66,8 @@ function CodeSkeleton() {
         <div className="animate-pulse space-y-2 p-4">
             {[...Array(15)].map((_, i) => (
                 <div key={i} className="flex gap-3">
-                    <div className="w-6 h-4 bg-zinc-800 rounded" />
-                    <div className="h-4 bg-zinc-800 rounded" style={{ width: `${40 + Math.random() * 50}%` }} />
+                    <div className="w-6 h-4 bg-[var(--bg-secondary)] rounded-lg" />
+                    <div className="h-4 bg-[var(--bg-secondary)] rounded-lg" style={{ width: `${40 + Math.random() * 50}%` }} />
                 </div>
             ))}
         </div>
@@ -77,7 +77,7 @@ function CodeSkeleton() {
 function RadarSkeleton() {
     return (
         <div className="animate-pulse flex items-center justify-center h-64">
-            <div className="w-48 h-48 bg-zinc-800 rounded-full opacity-30" />
+            <div className="w-48 h-48 bg-[var(--bg-secondary)] rounded-lg opacity-30" />
         </div>
     );
 }
@@ -85,9 +85,9 @@ function RadarSkeleton() {
 function SectionSkeleton() {
     return (
         <div className="animate-pulse space-y-3 p-4">
-            <div className="h-4 w-32 bg-zinc-800 rounded" />
-            <div className="h-3 w-full bg-zinc-800 rounded" />
-            <div className="h-3 w-3/4 bg-zinc-800 rounded" />
+            <div className="h-4 w-32 bg-[var(--bg-secondary)] rounded-lg" />
+            <div className="h-3 w-full bg-[var(--bg-secondary)] rounded-lg" />
+            <div className="h-3 w-3/4 bg-[var(--bg-secondary)] rounded-lg" />
         </div>
     );
 }
@@ -96,18 +96,18 @@ function SectionSkeleton() {
 
 function ComplexityBadge({ time, space }: { time: string; space: string }) {
     const getComplexityColor = (c: string) => {
-        if (c.includes("1") || c.includes("log")) return "text-emerald-400 bg-emerald-500/10 border-emerald-500/20";
-        if (c.includes("n)") && !c.includes("n^") && !c.includes("n2")) return "text-blue-400 bg-blue-500/10 border-blue-500/20";
-        if (c.includes("n log") || c.includes("nlog")) return "text-blue-400 bg-blue-500/10 border-blue-500/20";
+        if (c.includes("1") || c.includes("log")) return "text-[var(--accent-primary)] bg-[var(--accent-primary)]/10 border-[var(--accent-primary)]/15";
+        if (c.includes("n)") && !c.includes("n^") && !c.includes("n2")) return "text-[var(--text-secondary)] bg-blue-500/10 border-blue-500/20";
+        if (c.includes("n log") || c.includes("nlog")) return "text-[var(--text-secondary)] bg-blue-500/10 border-blue-500/20";
         return "text-amber-400 bg-amber-500/10 border-amber-500/20";
     };
 
     return (
         <div className="flex gap-2">
-            <span className={`px-2 py-0.5 rounded border text-[10px] font-mono font-bold ${getComplexityColor(time)}`}>
+            <span className={`px-2 py-0.5 rounded-lg border text-[10px] font-mono font-bold ${getComplexityColor(time)}`}>
                 ⏱ {time}
             </span>
-            <span className={`px-2 py-0.5 rounded border text-[10px] font-mono font-bold ${getComplexityColor(space)}`}>
+            <span className={`px-2 py-0.5 rounded-lg border text-[10px] font-mono font-bold ${getComplexityColor(space)}`}>
                 💾 {space}
             </span>
         </div>
@@ -143,10 +143,10 @@ function ScoreRing({ score, label, size = 56 }: { score: number; label: string; 
                     />
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-xs font-bold text-white">{score}</span>
+                    <span className="text-xs font-bold text-[var(--text-primary)]">{score}</span>
                 </div>
             </div>
-            <span className="text-[9px] text-zinc-500 font-medium uppercase tracking-wider">{label}</span>
+            <span className="text-[9px] text-[var(--text-tertiary)] font-medium uppercase tracking-wider">{label}</span>
         </div>
     );
 }
@@ -327,13 +327,13 @@ export function SubmissionClient({ submissionId }: SubmissionClientProps) {
     if (error) {
         return (
             <div className="flex flex-col items-center justify-center p-12 gap-4">
-                <div className="w-12 h-12 rounded-xl bg-red-500/10 flex items-center justify-center">
+                <div className="w-12 h-12 rounded-lg bg-red-500/10 flex items-center justify-center">
                     <svg className="w-6 h-6 text-red-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
                     </svg>
                 </div>
-                <p className="text-sm text-zinc-400">{error}</p>
-                <button onClick={() => window.location.reload()} className="px-4 py-2 bg-emerald-600 text-sm text-white rounded-lg hover:bg-emerald-700 transition-colors">
+                <p className="text-sm text-[var(--text-secondary)]">{error}</p>
+                <button onClick={() => window.location.reload()} className="px-4 py-2 bg-[var(--accent-primary)] text-sm text-[var(--accent-foreground)] rounded-lg hover:opacity-80 transition-colors">
                     Retry
                 </button>
             </div>
@@ -341,19 +341,19 @@ export function SubmissionClient({ submissionId }: SubmissionClientProps) {
     }
 
     return (
-        <div className="text-white">
+        <div className="text-[var(--text-primary)]">
             {/* ═══════════════════════════════════════════════════════ */}
             {/* TOP BAR                                                */}
             {/* ═══════════════════════════════════════════════════════ */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 bg-[#161b22]">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border-soft)] bg-[var(--bg-surface)]">
                 <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-600/30 to-blue-600/30 border border-zinc-700 flex items-center justify-center text-sm font-semibold">
+                    <div className="w-10 h-10 rounded-lg bg-[var(--bg-secondary)] border border-[var(--border-soft)] flex items-center justify-center text-sm font-semibold">
                         {submission ? (typeof submission.candidateId === "object" ? "C" : "C") : "?"}
                     </div>
                     <div>
                         <p className="text-sm font-semibold">Candidate Submission</p>
-                        <p className="text-xs text-zinc-400 flex items-center gap-2">
-                            <span className={`inline-block w-2 h-2 rounded-full ${submission?.status === "completed" ? "bg-emerald-400" : submission?.status === "timed_out" ? "bg-amber-400" : "bg-blue-400"}`} />
+                        <p className="text-xs text-[var(--text-secondary)] flex items-center gap-2">
+                            <span className={`inline-block w-2 h-2 rounded-full ${submission?.status === "completed" ? "bg-[var(--accent-primary)]" : submission?.status === "timed_out" ? "bg-amber-400" : "bg-blue-400"}`} />
                             {submission?.status === "completed" ? "Completed" : submission?.status === "timed_out" ? "Timed Out" : "Pending"}
                             {submission && ` • Score: ${submission.finalScore || 0}/100`}
                         </p>
@@ -363,24 +363,24 @@ export function SubmissionClient({ submissionId }: SubmissionClientProps) {
                 {submission && (
                     <div className="flex items-center gap-5 text-xs">
                         <div className="flex flex-col items-center">
-                            <span className="text-zinc-500">Language</span>
-                            <span className="text-white font-medium mt-0.5">{submission.language}</span>
+                            <span className="text-[var(--text-tertiary)]">Language</span>
+                            <span className="text-[var(--text-primary)] font-medium mt-0.5">{submission.language}</span>
                         </div>
-                        <div className="h-6 w-px bg-zinc-800" />
+                        <div className="h-6 w-px bg-[var(--bg-secondary)]" />
                         <div className="flex flex-col items-center">
-                            <span className="text-zinc-500">Exec Time</span>
-                            <span className="text-white font-medium mt-0.5">{submission.executionTime ?? 0}ms</span>
+                            <span className="text-[var(--text-tertiary)]">Exec Time</span>
+                            <span className="text-[var(--text-primary)] font-medium mt-0.5">{submission.executionTime ?? 0}ms</span>
                         </div>
-                        <div className="h-6 w-px bg-zinc-800" />
+                        <div className="h-6 w-px bg-[var(--bg-secondary)]" />
                         <div className="flex flex-col items-center">
-                            <span className="text-zinc-500">Memory</span>
-                            <span className="text-white font-medium mt-0.5">{submission.memory ?? 0}MB</span>
+                            <span className="text-[var(--text-tertiary)]">Memory</span>
+                            <span className="text-[var(--text-primary)] font-medium mt-0.5">{submission.memory ?? 0}MB</span>
                         </div>
-                        <div className="h-6 w-px bg-zinc-800" />
+                        <div className="h-6 w-px bg-[var(--bg-secondary)]" />
 
                         <Dialog open={isReplayOpen} onOpenChange={handleOpenReplay}>
                             <DialogTrigger asChild>
-                                <button className="flex items-center gap-2 px-3 py-1.5 rounded bg-zinc-800 hover:bg-zinc-700 transition">
+                                <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--bg-secondary)] hover:bg-[var(--bg-secondary)] transition">
                                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M15.91 11.672a.375.375 0 0 1 0 .656l-5.603 3.113a.375.375 0 0 1-.557-.328V8.887c0-.286.307-.466.557-.327l5.603 3.112Z" />
@@ -388,25 +388,25 @@ export function SubmissionClient({ submissionId }: SubmissionClientProps) {
                                     View Replay
                                 </button>
                             </DialogTrigger>
-                            <DialogContent className="max-w-5xl bg-[#0d1117] border-zinc-800 text-white p-0 overflow-hidden flex flex-col h-[85vh]">
-                                <DialogHeader className="p-4 border-b border-zinc-800 shrink-0">
+                            <DialogContent className="max-w-5xl bg-[var(--bg-body)] border-[var(--border-soft)] text-[var(--text-primary)] p-0 overflow-hidden flex flex-col h-[85vh]">
+                                <DialogHeader className="p-4 border-b border-[var(--border-soft)] shrink-0">
                                     <DialogTitle>Code Replay</DialogTitle>
                                     <DialogDescription className="sr-only">Code Replay viewer</DialogDescription>
                                 </DialogHeader>
                                 <div className="flex-1 flex flex-col min-h-0 bg-[#1e1e1e]">
                                     {replayLoading ? (
                                         <div className="flex-1 flex items-center justify-center">
-                                            <div className="h-6 w-6 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
+                                            <div className="h-6 w-6 animate-spin rounded-full border-2 border-[var(--accent-primary)] border-t-transparent" />
                                         </div>
                                     ) : snapshots.length === 0 ? (
                                         <div className="flex-1 flex flex-col items-center justify-center p-6 text-center gap-4">
-                                            <div className="w-12 h-12 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-500">
+                                            <div className="w-12 h-12 rounded-lg bg-[var(--bg-secondary)] border border-[var(--border-soft)] flex items-center justify-center text-[var(--text-tertiary)]">
                                                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                                     <path strokeLinecap="round" strokeLinejoin="round" d="M15.91 11.672a.375.375 0 0 1 0 .656l-5.603 3.113a.375.375 0 0 1-.557-.328V8.887c0-.286.307-.466.557-.327l5.603 3.112Z" />
                                                     <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                                                 </svg>
                                             </div>
-                                            <span className="text-sm text-zinc-500 font-medium">No snapshots recorded.</span>
+                                            <span className="text-sm text-[var(--text-tertiary)] font-medium">No snapshots recorded.</span>
                                         </div>
                                     ) : (
                                         <>
@@ -433,54 +433,54 @@ export function SubmissionClient({ submissionId }: SubmissionClientProps) {
                                             </div>
 
                                             {/* Replay Controls */}
-                                            <div className="bg-[#161b22] border-t border-zinc-800 shrink-0">
+                                            <div className="bg-[var(--bg-surface)] border-t border-[var(--border-soft)] shrink-0">
                                                 <div className="px-6 py-4 space-y-3">
                                                     {/* Snapshot counter */}
                                                     <div className="flex items-center justify-between">
-                                                        <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold flex items-center gap-1.5">
+                                                        <span className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-semibold flex items-center gap-1.5">
                                                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                                                                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                                                                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.91 11.672a.375.375 0 0 1 0 .656l-5.603 3.113a.375.375 0 0 1-.557-.328V8.887c0-.286.307-.466.557-.327l5.603 3.112Z" />
                                                             </svg>
                                                             Code Replay
                                                         </span>
-                                                        <span className="text-[10px] text-zinc-500 tabular-nums">
+                                                        <span className="text-[10px] text-[var(--text-tertiary)] tabular-nums">
                                                             Snapshot {replayIndex + 1} / {snapshots.length}
                                                         </span>
                                                     </div>
 
                                                     {/* Transport controls */}
                                                     <div className="flex items-center justify-center gap-4">
-                                                        <button onClick={skipToStart} className="p-1.5 rounded hover:bg-zinc-700 text-zinc-400 hover:text-white transition-colors">
+                                                        <button onClick={skipToStart} className="p-1.5 rounded-lg hover:bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">
                                                             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z" /></svg>
                                                         </button>
                                                         <motion.button
                                                             whileTap={{ scale: 0.9 }}
                                                             onClick={isPlaying ? pauseReplay : playReplay}
-                                                            className="w-12 h-12 rounded-full bg-emerald-600 flex items-center justify-center hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-600/20"
+                                                            className="w-12 h-12 rounded-lg bg-[var(--accent-primary)] flex items-center justify-center hover:opacity-80 transition-colors shadow-lg shadow-[var(--accent-primary)]/15"
                                                         >
                                                             <AnimatePresence mode="wait">
                                                                 {isPlaying ? (
-                                                                    <motion.svg key="pause" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} transition={{ duration: 0.15 }} className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" /></motion.svg>
+                                                                    <motion.svg key="pause" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} transition={{ duration: 0.15 }} className="w-5 h-5 text-[var(--text-primary)]" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" /></motion.svg>
                                                                 ) : (
-                                                                    <motion.svg key="play" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} transition={{ duration: 0.15 }} className="w-5 h-5 text-white ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></motion.svg>
+                                                                    <motion.svg key="play" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} transition={{ duration: 0.15 }} className="w-5 h-5 text-[var(--text-primary)] ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></motion.svg>
                                                                 )}
                                                             </AnimatePresence>
                                                         </motion.button>
-                                                        <button onClick={skipToEnd} className="p-1.5 rounded hover:bg-zinc-700 text-zinc-400 hover:text-white transition-colors">
+                                                        <button onClick={skipToEnd} className="p-1.5 rounded-lg hover:bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">
                                                             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" /></svg>
                                                         </button>
                                                     </div>
 
                                                     {/* Timeline slider */}
                                                     <div className="flex items-center gap-3">
-                                                        <span className="text-[10px] text-zinc-500 w-10 tabular-nums">
+                                                        <span className="text-[10px] text-[var(--text-tertiary)] w-10 tabular-nums">
                                                             {currentSnapshot ? formatMs(currentSnapshot.timestamp) : "00:00"}
                                                         </span>
                                                         <div className="flex-1 relative">
-                                                            <div className="absolute inset-0 h-1.5 rounded-full bg-zinc-800 top-1/2 -translate-y-1/2 overflow-hidden pointer-events-none">
+                                                            <div className="absolute inset-0 h-1.5 rounded-lg bg-[var(--bg-secondary)] top-1/2 -translate-y-1/2 overflow-hidden pointer-events-none">
                                                                 <motion.div
-                                                                    className="h-full bg-emerald-500/40 rounded-full"
+                                                                    className="h-full bg-[var(--accent-primary)]/40 rounded-full"
                                                                     animate={{ width: `${snapshots.length > 1 ? (replayIndex / (snapshots.length - 1)) * 100 : 0}%` }}
                                                                     transition={{ duration: 0.2 }}
                                                                 />
@@ -494,10 +494,10 @@ export function SubmissionClient({ submissionId }: SubmissionClientProps) {
                                                                     pauseReplay();
                                                                     setReplayIndex(parseInt(e.target.value));
                                                                 }}
-                                                                className="relative w-full h-1.5 accent-emerald-500 cursor-pointer appearance-none bg-transparent z-10"
+                                                                className="relative w-full h-1.5 accent-[var(--accent-primary)] cursor-pointer appearance-none bg-transparent z-10"
                                                             />
                                                         </div>
-                                                        <span className="text-[10px] text-zinc-500 w-10 text-right tabular-nums">
+                                                        <span className="text-[10px] text-[var(--text-tertiary)] w-10 text-right tabular-nums">
                                                             {snapshots.length > 0 ? formatMs(snapshots[snapshots.length - 1].timestamp) : "00:00"}
                                                         </span>
                                                     </div>
@@ -517,7 +517,7 @@ export function SubmissionClient({ submissionId }: SubmissionClientProps) {
             {/* ═══════════════════════════════════════════════════════ */}
             <div className="flex min-h-[calc(100vh-60px)]">
                 {/* ─── Left: Code ───────────────────────────────────── */}
-                <div className="flex-1 flex flex-col border-r border-zinc-800">
+                <div className="flex-1 flex flex-col border-r border-[var(--border-soft)]">
                     {/* Code Display — Read-only Monaco Editor */}
                     <div className="flex-1 overflow-hidden bg-[#1e1e1e]">
                         {loading ? (
@@ -547,7 +547,7 @@ export function SubmissionClient({ submissionId }: SubmissionClientProps) {
                 </div>
 
                 {/* ─── Right: AI Report + Recommendations ─────────── */}
-                <div className="w-[400px] shrink-0 overflow-y-auto bg-[#0d1117] flex flex-col">
+                <div className="w-[400px] shrink-0 overflow-y-auto bg-[var(--bg-body)] flex flex-col">
                     {/* ── Anti-Cheat Summary ─────────────────────── */}
                     {submission && (() => {
                         const tabs = submission.tabSwitchCount ?? 0;
@@ -559,43 +559,43 @@ export function SubmissionClient({ submissionId }: SubmissionClientProps) {
                         const suspicion = Math.min(raw, 100);
                         const level = suspicion >= 50 ? "high" : suspicion >= 20 ? "medium" : "low";
                         const levelColors = {
-                            low: { bg: "bg-emerald-500/10", border: "border-emerald-500/20", text: "text-emerald-400", label: "Low Risk" },
+                            low: { bg: "bg-[var(--accent-primary)]/10", border: "border-[var(--accent-primary)]/15", text: "text-[var(--accent-primary)]", label: "Low Risk" },
                             medium: { bg: "bg-amber-500/10", border: "border-amber-500/20", text: "text-amber-400", label: "Medium Risk" },
                             high: { bg: "bg-red-500/10", border: "border-red-500/20", text: "text-red-400", label: "High Risk" },
                         };
                         const lc = levelColors[level];
                         return (
-                            <div className="px-4 py-3 border-b border-zinc-800 bg-[#161b22] space-y-2.5">
+                            <div className="px-4 py-3 border-b border-[var(--border-soft)] bg-[var(--bg-surface)] space-y-2.5">
                                 <div className="flex items-center justify-between">
-                                    <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold flex items-center gap-1.5">
+                                    <span className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-semibold flex items-center gap-1.5">
                                         🛡️ Anti-Cheat
                                     </span>
-                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${lc.bg} ${lc.border} ${lc.text}`}>
+                                    <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold border ${lc.bg} ${lc.border} ${lc.text}`}>
                                         {lc.label} ({suspicion})
                                     </span>
                                 </div>
                                 <div className="grid grid-cols-4 gap-2">
-                                    <div className="bg-zinc-900/60 rounded-lg p-2 text-center">
-                                        <p className="text-xs font-bold text-white">{tabs}</p>
-                                        <p className="text-[9px] text-zinc-500 mt-0.5">Tab Switch</p>
+                                    <div className="bg-[var(--bg-surface)]/60 rounded-lg p-2 text-center">
+                                        <p className="text-xs font-bold text-[var(--text-primary)]">{tabs}</p>
+                                        <p className="text-[9px] text-[var(--text-tertiary)] mt-0.5">Tab Switch</p>
                                     </div>
-                                    <div className="bg-zinc-900/60 rounded-lg p-2 text-center">
-                                        <p className="text-xs font-bold text-white">{blurs}</p>
-                                        <p className="text-[9px] text-zinc-500 mt-0.5">Blur</p>
+                                    <div className="bg-[var(--bg-surface)]/60 rounded-lg p-2 text-center">
+                                        <p className="text-xs font-bold text-[var(--text-primary)]">{blurs}</p>
+                                        <p className="text-[9px] text-[var(--text-tertiary)] mt-0.5">Blur</p>
                                     </div>
-                                    <div className="bg-zinc-900/60 rounded-lg p-2 text-center">
-                                        <p className="text-xs font-bold text-white">{pastes}</p>
-                                        <p className="text-[9px] text-zinc-500 mt-0.5">Paste</p>
+                                    <div className="bg-[var(--bg-surface)]/60 rounded-lg p-2 text-center">
+                                        <p className="text-xs font-bold text-[var(--text-primary)]">{pastes}</p>
+                                        <p className="text-[9px] text-[var(--text-tertiary)] mt-0.5">Paste</p>
                                     </div>
-                                    <div className="bg-zinc-900/60 rounded-lg p-2 text-center">
-                                        <p className="text-xs font-bold text-white">{copies}</p>
-                                        <p className="text-[9px] text-zinc-500 mt-0.5">Copy</p>
+                                    <div className="bg-[var(--bg-surface)]/60 rounded-lg p-2 text-center">
+                                        <p className="text-xs font-bold text-[var(--text-primary)]">{copies}</p>
+                                        <p className="text-[9px] text-[var(--text-tertiary)] mt-0.5">Copy</p>
                                     </div>
                                 </div>
                                 {/* Suspicion bar */}
-                                <div className="h-1.5 w-full bg-zinc-800 rounded-full overflow-hidden">
+                                <div className="h-1.5 w-full bg-[var(--bg-secondary)] rounded-lg overflow-hidden">
                                     <motion.div
-                                        className={`h-full rounded-full ${level === "high" ? "bg-red-500" : level === "medium" ? "bg-amber-500" : "bg-emerald-500"}`}
+                                        className={`h-full rounded-full ${level === "high" ? "bg-red-500" : level === "medium" ? "bg-amber-500" : "bg-[var(--accent-primary)]"}`}
                                         initial={{ width: 0 }}
                                         animate={{ width: `${suspicion}%` }}
                                         transition={{ delay: 0.3, duration: 0.8, ease: "easeOut" }}
@@ -606,12 +606,12 @@ export function SubmissionClient({ submissionId }: SubmissionClientProps) {
                     })()}
 
                     {/* ── Tab Navigation ──────────────────────────── */}
-                    <div className="flex border-b border-zinc-800 bg-[#161b22] shrink-0">
+                    <div className="flex border-b border-[var(--border-soft)] bg-[var(--bg-surface)] shrink-0">
                         <button
                             onClick={() => setActiveTab("analysis")}
                             className={`flex-1 px-4 py-3 text-xs font-semibold transition-all relative ${activeTab === "analysis"
-                                ? "text-emerald-400"
-                                : "text-zinc-500 hover:text-zinc-300"
+                                ? "text-[var(--accent-primary)]"
+                                : "text-[var(--text-tertiary)] hover:text-[var(--text-primary)]"
                                 }`}
                         >
                             <span className="flex items-center justify-center gap-1.5">
@@ -620,7 +620,7 @@ export function SubmissionClient({ submissionId }: SubmissionClientProps) {
                             {activeTab === "analysis" && (
                                 <motion.div
                                     layoutId="activeTab"
-                                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-400"
+                                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--accent-primary)]"
                                     transition={{ duration: 0.2 }}
                                 />
                             )}
@@ -629,7 +629,7 @@ export function SubmissionClient({ submissionId }: SubmissionClientProps) {
                             onClick={() => setActiveTab("recommendations")}
                             className={`flex-1 px-4 py-3 text-xs font-semibold transition-all relative ${activeTab === "recommendations"
                                 ? "text-violet-400"
-                                : "text-zinc-500 hover:text-zinc-300"
+                                : "text-[var(--text-tertiary)] hover:text-[var(--text-primary)]"
                                 }`}
                         >
                             <span className="flex items-center justify-center gap-1.5">
@@ -665,9 +665,9 @@ export function SubmissionClient({ submissionId }: SubmissionClientProps) {
                                         {/* ── Header ─────────────────────────────────── */}
                                         <motion.div variants={fadeUp}>
                                             <h2 className="text-sm font-bold flex items-center gap-2">
-                                                <span className="text-emerald-400">✨</span> AI Analysis Report
+                                                <span className="text-[var(--accent-primary)]">✨</span> AI Analysis Report
                                             </h2>
-                                            <p className="text-[10px] text-zinc-500 mt-0.5">Powered by AI Code Vision Engine</p>
+                                            <p className="text-[10px] text-[var(--text-tertiary)] mt-0.5">Powered by AI Code Vision Engine</p>
                                         </motion.div>
 
                                         {/* ── Overall Score + Complexity ──────────────── */}
@@ -681,12 +681,12 @@ export function SubmissionClient({ submissionId }: SubmissionClientProps) {
                                                             <div className="flex items-center gap-3">
                                                                 <ScoreRing score={avgScore} label="Overall" size={60} />
                                                                 <div>
-                                                                    <p className="text-sm font-semibold text-white">
+                                                                    <p className="text-sm font-semibold text-[var(--text-primary)]">
                                                                         {avgScore >= 80 ? "Excellent" :
                                                                             avgScore >= 60 ? "Good" :
                                                                                 avgScore >= 40 ? "Needs Work" : "Poor"}
                                                                     </p>
-                                                                    <p className="text-[10px] text-zinc-500">Code Quality Rating</p>
+                                                                    <p className="text-[10px] text-[var(--text-tertiary)]">Code Quality Rating</p>
                                                                 </div>
                                                             </div>
                                                             <ComplexityBadge
@@ -744,7 +744,7 @@ export function SubmissionClient({ submissionId }: SubmissionClientProps) {
                                                 </Card>
                                             </motion.div>
                                         ) : (
-                                            <motion.div variants={fadeUp} className="text-center py-8 text-sm text-zinc-500">
+                                            <motion.div variants={fadeUp} className="text-center py-8 text-sm text-[var(--text-tertiary)]">
                                                 AI report not available
                                             </motion.div>
                                         )}
@@ -756,9 +756,9 @@ export function SubmissionClient({ submissionId }: SubmissionClientProps) {
                                             <motion.div variants={fadeUp}>
                                                 <AccordionItem
                                                     title="Strengths"
-                                                    icon={<span className="text-emerald-400 text-xs">✓</span>}
+                                                    icon={<span className="text-[var(--accent-primary)] text-xs">✓</span>}
                                                     badge={
-                                                        <span className="px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[9px] font-bold">
+                                                        <span className="px-1.5 py-0.5 rounded-lg bg-[var(--accent-primary)]/10 text-[var(--accent-primary)] text-[9px] font-bold">
                                                             {aiReport.codeQualityReport.strengths.length}
                                                         </span>
                                                     }
@@ -771,9 +771,9 @@ export function SubmissionClient({ submissionId }: SubmissionClientProps) {
                                                                 initial={{ opacity: 0, x: -8 }}
                                                                 animate={{ opacity: 1, x: 0 }}
                                                                 transition={{ delay: i * 0.05 }}
-                                                                className="flex gap-2 text-sm text-zinc-300 leading-relaxed"
+                                                                className="flex gap-2 text-sm text-[var(--text-primary)] leading-relaxed"
                                                             >
-                                                                <span className="text-emerald-400 shrink-0 mt-1">•</span>
+                                                                <span className="text-[var(--accent-primary)] shrink-0 mt-1">•</span>
                                                                 {s}
                                                             </motion.li>
                                                         ))}
@@ -791,7 +791,7 @@ export function SubmissionClient({ submissionId }: SubmissionClientProps) {
                                                     title="Weaknesses"
                                                     icon={<span className="text-amber-400 text-xs">⚠</span>}
                                                     badge={
-                                                        <span className="px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400 text-[9px] font-bold">
+                                                        <span className="px-1.5 py-0.5 rounded-lg bg-amber-500/10 text-amber-400 text-[9px] font-bold">
                                                             {aiReport.codeQualityReport.weaknesses.length}
                                                         </span>
                                                     }
@@ -804,7 +804,7 @@ export function SubmissionClient({ submissionId }: SubmissionClientProps) {
                                                                 initial={{ opacity: 0, x: -8 }}
                                                                 animate={{ opacity: 1, x: 0 }}
                                                                 transition={{ delay: i * 0.05 }}
-                                                                className="flex gap-2 text-sm text-zinc-300 leading-relaxed"
+                                                                className="flex gap-2 text-sm text-[var(--text-primary)] leading-relaxed"
                                                             >
                                                                 <span className="text-amber-400 shrink-0 mt-1">•</span>
                                                                 {w}
@@ -822,17 +822,17 @@ export function SubmissionClient({ submissionId }: SubmissionClientProps) {
                                             <motion.div variants={fadeUp}>
                                                 <AccordionItem
                                                     title="Improvement Suggestions"
-                                                    icon={<span className="text-blue-400 text-xs">💡</span>}
+                                                    icon={<span className="text-[var(--text-secondary)] text-xs">💡</span>}
                                                     badge={
-                                                        <span className="px-1.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 text-[9px] font-bold">
+                                                        <span className="px-1.5 py-0.5 rounded-lg bg-blue-500/10 text-[var(--text-secondary)] text-[9px] font-bold">
                                                             {aiReport.codeQualityReport.improvementSuggestions.length}
                                                         </span>
                                                     }
                                                 >
                                                     <ul className="space-y-2">
                                                         {aiReport.codeQualityReport.improvementSuggestions.map((s, i) => (
-                                                            <li key={i} className="flex gap-2 text-sm text-zinc-300 leading-relaxed">
-                                                                <span className="text-blue-400 shrink-0 mt-1">•</span>
+                                                            <li key={i} className="flex gap-2 text-sm text-[var(--text-primary)] leading-relaxed">
+                                                                <span className="text-[var(--text-secondary)] shrink-0 mt-1">•</span>
                                                                 {s}
                                                             </li>
                                                         ))}
@@ -863,12 +863,12 @@ export function SubmissionClient({ submissionId }: SubmissionClientProps) {
                                                             transition={{ duration: 0.3 }}
                                                             className="overflow-hidden mt-3"
                                                         >
-                                                            <div className="rounded-lg border border-zinc-800 bg-[#1e1e1e] p-4 space-y-3">
+                                                            <div className="rounded-lg border border-[var(--border-soft)] bg-[#1e1e1e] p-4 space-y-3">
                                                                 <p className="text-[10px] uppercase tracking-wider text-purple-400 font-bold">
                                                                     AI-Suggested Improvements
                                                                 </p>
                                                                 {aiReport.codeQualityReport.improvementSuggestions.map((s, i) => (
-                                                                    <div key={i} className="flex gap-2 text-xs text-zinc-300 leading-relaxed font-mono">
+                                                                    <div key={i} className="flex gap-2 text-xs text-[var(--text-primary)] leading-relaxed font-mono">
                                                                         <span className="text-purple-400 shrink-0">{i + 1}.</span>
                                                                         {s}
                                                                     </div>
@@ -889,7 +889,7 @@ export function SubmissionClient({ submissionId }: SubmissionClientProps) {
                                                     title="Technical Questions"
                                                     icon={<span className="text-xs">🎙</span>}
                                                     badge={
-                                                        <span className="px-1.5 py-0.5 rounded-full bg-zinc-800 text-zinc-400 text-[9px] font-bold">
+                                                        <span className="px-1.5 py-0.5 rounded-lg bg-[var(--bg-secondary)] text-[var(--text-secondary)] text-[9px] font-bold">
                                                             {aiReport.interviewQuestions.followUpTechnicalQuestions.length}
                                                         </span>
                                                     }
@@ -897,8 +897,8 @@ export function SubmissionClient({ submissionId }: SubmissionClientProps) {
                                                 >
                                                     <div className="space-y-2">
                                                         {aiReport.interviewQuestions.followUpTechnicalQuestions.map((q, i) => (
-                                                            <div key={i} className="rounded-lg border border-zinc-800 bg-zinc-900/30 p-3">
-                                                                <p className="text-xs text-zinc-300 leading-relaxed italic">&ldquo;{q}&rdquo;</p>
+                                                            <div key={i} className="rounded-lg border border-[var(--border-soft)] bg-[var(--bg-surface)]/30 p-3">
+                                                                <p className="text-xs text-[var(--text-primary)] leading-relaxed italic">&ldquo;{q}&rdquo;</p>
                                                             </div>
                                                         ))}
                                                     </div>
@@ -909,15 +909,15 @@ export function SubmissionClient({ submissionId }: SubmissionClientProps) {
                                                         title="System Design"
                                                         icon={<span className="text-xs">🏗</span>}
                                                         badge={
-                                                            <span className="px-1.5 py-0.5 rounded-full bg-zinc-800 text-zinc-400 text-[9px] font-bold">
+                                                            <span className="px-1.5 py-0.5 rounded-lg bg-[var(--bg-secondary)] text-[var(--text-secondary)] text-[9px] font-bold">
                                                                 {aiReport.interviewQuestions.systemDesignQuestions.length}
                                                             </span>
                                                         }
                                                     >
                                                         <div className="space-y-2">
                                                             {aiReport.interviewQuestions.systemDesignQuestions.map((q, i) => (
-                                                                <div key={i} className="rounded-lg border border-zinc-800 bg-zinc-900/30 p-3">
-                                                                    <p className="text-xs text-zinc-300 leading-relaxed italic">&ldquo;{q}&rdquo;</p>
+                                                                <div key={i} className="rounded-lg border border-[var(--border-soft)] bg-[var(--bg-surface)]/30 p-3">
+                                                                    <p className="text-xs text-[var(--text-primary)] leading-relaxed italic">&ldquo;{q}&rdquo;</p>
                                                                 </div>
                                                             ))}
                                                         </div>
@@ -929,15 +929,15 @@ export function SubmissionClient({ submissionId }: SubmissionClientProps) {
                                                         title="Improvement Questions"
                                                         icon={<span className="text-xs">🔧</span>}
                                                         badge={
-                                                            <span className="px-1.5 py-0.5 rounded-full bg-zinc-800 text-zinc-400 text-[9px] font-bold">
+                                                            <span className="px-1.5 py-0.5 rounded-lg bg-[var(--bg-secondary)] text-[var(--text-secondary)] text-[9px] font-bold">
                                                                 {aiReport.interviewQuestions.improvementQuestions.length}
                                                             </span>
                                                         }
                                                     >
                                                         <div className="space-y-2">
                                                             {aiReport.interviewQuestions.improvementQuestions.map((q, i) => (
-                                                                <div key={i} className="rounded-lg border border-zinc-800 bg-zinc-900/30 p-3">
-                                                                    <p className="text-xs text-zinc-300 leading-relaxed italic">&ldquo;{q}&rdquo;</p>
+                                                                <div key={i} className="rounded-lg border border-[var(--border-soft)] bg-[var(--bg-surface)]/30 p-3">
+                                                                    <p className="text-xs text-[var(--text-primary)] leading-relaxed italic">&ldquo;{q}&rdquo;</p>
                                                                 </div>
                                                             ))}
                                                         </div>
@@ -955,26 +955,26 @@ export function SubmissionClient({ submissionId }: SubmissionClientProps) {
                                                 >
                                                     <div className="space-y-2.5">
                                                         <div className="flex justify-between items-center">
-                                                            <span className="text-xs text-zinc-500">Tab Switches</span>
-                                                            <span className={`text-xs font-bold ${submission.tabSwitchCount > 5 ? "text-red-400" : submission.tabSwitchCount > 2 ? "text-amber-400" : "text-emerald-400"}`}>
+                                                            <span className="text-xs text-[var(--text-tertiary)]">Tab Switches</span>
+                                                            <span className={`text-xs font-bold ${submission.tabSwitchCount > 5 ? "text-red-400" : submission.tabSwitchCount > 2 ? "text-amber-400" : "text-[var(--accent-primary)]"}`}>
                                                                 {submission.tabSwitchCount}
                                                                 {submission.tabSwitchCount > 5 && <span className="text-red-400 ml-1">⚠</span>}
                                                             </span>
                                                         </div>
                                                         <div className="flex justify-between items-center">
-                                                            <span className="text-xs text-zinc-500">Paste Count</span>
-                                                            <span className={`text-xs font-bold ${submission.pasteCount > 3 ? "text-amber-400" : "text-zinc-300"}`}>
+                                                            <span className="text-xs text-[var(--text-tertiary)]">Paste Count</span>
+                                                            <span className={`text-xs font-bold ${submission.pasteCount > 3 ? "text-amber-400" : "text-[var(--text-primary)]"}`}>
                                                                 {submission.pasteCount}
                                                             </span>
                                                         </div>
                                                         <div className="flex justify-between items-center">
-                                                            <span className="text-xs text-zinc-500">Test Case Score</span>
-                                                            <span className="text-xs font-bold text-white">{submission.testCaseScore}%</span>
+                                                            <span className="text-xs text-[var(--text-tertiary)]">Test Case Score</span>
+                                                            <span className="text-xs font-bold text-[var(--text-primary)]">{submission.testCaseScore}%</span>
                                                         </div>
-                                                        <div className="h-px bg-zinc-800 my-1" />
+                                                        <div className="h-px bg-[var(--bg-secondary)] my-1" />
                                                         <div className="flex justify-between items-center">
-                                                            <span className="text-xs text-zinc-500">Final Score</span>
-                                                            <span className="text-sm font-bold text-emerald-400">{submission.finalScore || 0}/100</span>
+                                                            <span className="text-xs text-[var(--text-tertiary)]">Final Score</span>
+                                                            <span className="text-sm font-bold text-[var(--accent-primary)]">{submission.finalScore || 0}/100</span>
                                                         </div>
                                                     </div>
                                                 </AccordionItem>
@@ -1001,7 +1001,7 @@ export function SubmissionClient({ submissionId }: SubmissionClientProps) {
                                             <h2 className="text-sm font-bold flex items-center gap-2">
                                                 <span className="text-violet-400">🎯</span> AI Recommendations
                                             </h2>
-                                            <p className="text-[10px] text-zinc-500 mt-0.5">Personalized follow-up questions &amp; learning paths</p>
+                                            <p className="text-[10px] text-[var(--text-tertiary)] mt-0.5">Personalized follow-up questions &amp; learning paths</p>
                                         </motion.div>
 
                                         {/* ── Loading State ─────────────────────────── */}
@@ -1013,11 +1013,11 @@ export function SubmissionClient({ submissionId }: SubmissionClientProps) {
                                             </>
                                         ) : !aiRecommendation ? (
                                             <motion.div variants={fadeUp} className="text-center py-12">
-                                                <div className="w-12 h-12 mx-auto rounded-xl bg-violet-500/10 flex items-center justify-center mb-3">
+                                                <div className="w-12 h-12 mx-auto rounded-lg bg-violet-500/10 flex items-center justify-center mb-3">
                                                     <span className="text-xl">🔮</span>
                                                 </div>
-                                                <p className="text-sm text-zinc-400">Recommendations not available</p>
-                                                <p className="text-[10px] text-zinc-600 mt-1">They may still be generating or the AI timed out.</p>
+                                                <p className="text-sm text-[var(--text-secondary)]">Recommendations not available</p>
+                                                <p className="text-[10px] text-[var(--text-tertiary)] mt-1">They may still be generating or the AI timed out.</p>
                                             </motion.div>
                                         ) : (
                                             <>
@@ -1028,7 +1028,7 @@ export function SubmissionClient({ submissionId }: SubmissionClientProps) {
                                                             title="Follow-Up Questions"
                                                             icon={<span className="text-violet-400 text-xs">🎯</span>}
                                                             badge={
-                                                                <span className="px-1.5 py-0.5 rounded-full bg-violet-500/10 text-violet-400 text-[9px] font-bold">
+                                                                <span className="px-1.5 py-0.5 rounded-lg bg-violet-500/10 text-violet-400 text-[9px] font-bold">
                                                                     {aiRecommendation.followUpQuestions.length}
                                                                 </span>
                                                             }
@@ -1043,7 +1043,7 @@ export function SubmissionClient({ submissionId }: SubmissionClientProps) {
                                                                         transition={{ delay: i * 0.05 }}
                                                                         className="rounded-lg border border-violet-500/20 bg-violet-500/5 p-3"
                                                                     >
-                                                                        <p className="text-xs text-zinc-300 leading-relaxed">
+                                                                        <p className="text-xs text-[var(--text-primary)] leading-relaxed">
                                                                             <span className="text-violet-400 font-bold mr-1.5">Q{i + 1}.</span>
                                                                             {q}
                                                                         </p>
@@ -1059,9 +1059,9 @@ export function SubmissionClient({ submissionId }: SubmissionClientProps) {
                                                     <motion.div variants={fadeUp}>
                                                         <AccordionItem
                                                             title="Improvement Questions"
-                                                            icon={<span className="text-blue-400 text-xs">🔧</span>}
+                                                            icon={<span className="text-[var(--text-secondary)] text-xs">🔧</span>}
                                                             badge={
-                                                                <span className="px-1.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 text-[9px] font-bold">
+                                                                <span className="px-1.5 py-0.5 rounded-lg bg-blue-500/10 text-[var(--text-secondary)] text-[9px] font-bold">
                                                                     {aiRecommendation.improvementQuestions.length}
                                                                 </span>
                                                             }
@@ -1076,8 +1076,8 @@ export function SubmissionClient({ submissionId }: SubmissionClientProps) {
                                                                         transition={{ delay: i * 0.05 }}
                                                                         className="rounded-lg border border-blue-500/20 bg-blue-500/5 p-3"
                                                                     >
-                                                                        <p className="text-xs text-zinc-300 leading-relaxed">
-                                                                            <span className="text-blue-400 font-bold mr-1.5">Q{i + 1}.</span>
+                                                                        <p className="text-xs text-[var(--text-primary)] leading-relaxed">
+                                                                            <span className="text-[var(--text-secondary)] font-bold mr-1.5">Q{i + 1}.</span>
                                                                             {q}
                                                                         </p>
                                                                     </motion.div>
@@ -1094,7 +1094,7 @@ export function SubmissionClient({ submissionId }: SubmissionClientProps) {
                                                             title="Optimization Questions"
                                                             icon={<span className="text-amber-400 text-xs">⚡</span>}
                                                             badge={
-                                                                <span className="px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400 text-[9px] font-bold">
+                                                                <span className="px-1.5 py-0.5 rounded-lg bg-amber-500/10 text-amber-400 text-[9px] font-bold">
                                                                     {aiRecommendation.optimizationQuestions.length}
                                                                 </span>
                                                             }
@@ -1108,7 +1108,7 @@ export function SubmissionClient({ submissionId }: SubmissionClientProps) {
                                                                         transition={{ delay: i * 0.05 }}
                                                                         className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-3"
                                                                     >
-                                                                        <p className="text-xs text-zinc-300 leading-relaxed">
+                                                                        <p className="text-xs text-[var(--text-primary)] leading-relaxed">
                                                                             <span className="text-amber-400 font-bold mr-1.5">Q{i + 1}.</span>
                                                                             {q}
                                                                         </p>
@@ -1126,7 +1126,7 @@ export function SubmissionClient({ submissionId }: SubmissionClientProps) {
                                                             title="System Design Questions"
                                                             icon={<span className="text-xs">🏗</span>}
                                                             badge={
-                                                                <span className="px-1.5 py-0.5 rounded-full bg-zinc-800 text-zinc-400 text-[9px] font-bold">
+                                                                <span className="px-1.5 py-0.5 rounded-lg bg-[var(--bg-secondary)] text-[var(--text-secondary)] text-[9px] font-bold">
                                                                     {aiRecommendation.systemDesignQuestions.length}
                                                                 </span>
                                                             }
@@ -1138,10 +1138,10 @@ export function SubmissionClient({ submissionId }: SubmissionClientProps) {
                                                                         initial={{ opacity: 0, x: -8 }}
                                                                         animate={{ opacity: 1, x: 0 }}
                                                                         transition={{ delay: i * 0.05 }}
-                                                                        className="rounded-lg border border-zinc-700/50 bg-zinc-800/30 p-3"
+                                                                        className="rounded-lg border border-[var(--border-soft)]/50 bg-[var(--bg-surface-hover)] p-3"
                                                                     >
-                                                                        <p className="text-xs text-zinc-300 leading-relaxed">
-                                                                            <span className="text-zinc-400 font-bold mr-1.5">Q{i + 1}.</span>
+                                                                        <p className="text-xs text-[var(--text-primary)] leading-relaxed">
+                                                                            <span className="text-[var(--text-secondary)] font-bold mr-1.5">Q{i + 1}.</span>
                                                                             {q}
                                                                         </p>
                                                                     </motion.div>
@@ -1156,9 +1156,9 @@ export function SubmissionClient({ submissionId }: SubmissionClientProps) {
                                                     <motion.div variants={fadeUp}>
                                                         <AccordionItem
                                                             title="Recommended Learning Topics"
-                                                            icon={<span className="text-emerald-400 text-xs">📚</span>}
+                                                            icon={<span className="text-[var(--accent-primary)] text-xs">📚</span>}
                                                             badge={
-                                                                <span className="px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[9px] font-bold">
+                                                                <span className="px-1.5 py-0.5 rounded-lg bg-[var(--accent-primary)]/10 text-[var(--accent-primary)] text-[9px] font-bold">
                                                                     {aiRecommendation.recommendedLearningTopics.length}
                                                                 </span>
                                                             }
@@ -1171,10 +1171,10 @@ export function SubmissionClient({ submissionId }: SubmissionClientProps) {
                                                                         initial={{ opacity: 0, x: -8 }}
                                                                         animate={{ opacity: 1, x: 0 }}
                                                                         transition={{ delay: i * 0.05 }}
-                                                                        className="flex items-start gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3"
+                                                                        className="flex items-start gap-2 rounded-lg border border-[var(--accent-primary)]/15 bg-[var(--accent-primary)]/5 p-3"
                                                                     >
-                                                                        <span className="text-emerald-400 shrink-0 text-xs mt-0.5">📖</span>
-                                                                        <p className="text-xs text-zinc-300 leading-relaxed">{topic}</p>
+                                                                        <span className="text-[var(--accent-primary)] shrink-0 text-xs mt-0.5">📖</span>
+                                                                        <p className="text-xs text-[var(--text-primary)] leading-relaxed">{topic}</p>
                                                                     </motion.div>
                                                                 ))}
                                                             </div>

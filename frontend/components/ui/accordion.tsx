@@ -24,10 +24,10 @@ export function AccordionItem({
     const [open, setOpen] = React.useState(defaultOpen);
 
     return (
-        <div className={cn("rounded-lg border border-zinc-800 bg-zinc-900/50 overflow-hidden", className)}>
+        <div className={cn("rounded-lg border border-[var(--border-soft)] bg-[var(--bg-surface)] overflow-hidden", className)}>
             <button
                 onClick={() => setOpen(!open)}
-                className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-zinc-800/30 transition-colors"
+                className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-[var(--bg-surface-hover)] transition-colors"
             >
                 <div className="flex items-center gap-2">
                     {icon}
@@ -37,7 +37,7 @@ export function AccordionItem({
                 <motion.svg
                     animate={{ rotate: open ? 180 : 0 }}
                     transition={{ duration: 0.2 }}
-                    className="w-4 h-4 text-zinc-500 shrink-0"
+                    className="w-4 h-4 text-[var(--text-tertiary)] shrink-0"
                     fill="none"
                     viewBox="0 0 24 24"
                     strokeWidth={2}

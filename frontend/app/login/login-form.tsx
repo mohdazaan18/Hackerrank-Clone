@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/hooks/use-auth";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { z } from "zod";
 
 // ─── Validation ──────────────────────────────────────────────────
@@ -69,7 +70,7 @@ export function LoginForm() {
     // Show loading while checking auth state
     if (authLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-background">
+            <div className="min-h-screen flex items-center justify-center bg-[var(--bg-body)]">
                 <div className="flex flex-col items-center gap-3">
                     <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
                     <p className="text-sm text-muted-foreground">Loading...</p>
@@ -79,11 +80,16 @@ export function LoginForm() {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-background px-4">
+        <div className="min-h-screen flex items-center justify-center bg-[var(--bg-body)] px-4 sm:px-6 relative animate-page-in">
+            {/* Theme Toggle located at top right */}
+            <div className="absolute top-6 right-6 z-50">
+                <ThemeToggle />
+            </div>
+
             <div className="w-full max-w-md">
                 {/* Header */}
                 <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 mb-4">
+                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-primary/10 mb-4">
                         <svg
                             className="w-6 h-6 text-primary"
                             fill="none"
@@ -105,7 +111,7 @@ export function LoginForm() {
                 </div>
 
                 {/* Form Card */}
-                <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+                <div className="surface-card p-8">
                     <form onSubmit={handleSubmit} className="space-y-4">
                         {/* Server Error */}
                         {authError && (
@@ -130,10 +136,10 @@ export function LoginForm() {
                                 placeholder="admin@example.com"
                                 autoComplete="email"
                                 disabled={isSubmitting}
-                                className={`flex h-10 w-full rounded-lg border bg-background px-3 py-2 text-sm 
-                  placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 
-                  focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50
-                  ${fieldErrors.email ? "border-destructive" : "border-input"}`}
+                                className={`flex h-11 w-full rounded-lg border bg-[var(--bg-glass)] px-3 py-2 text-sm 
+                  placeholder:text-[var(--text-secondary)] focus-visible:outline-none focus-visible:ring-2 
+                  focus-[var(--accent-primary)] disabled:cursor-not-allowed disabled:opacity-50
+                  ${fieldErrors.email ? "border-red-500" : "border-[var(--border-soft)]"}`}
                             />
                             {fieldErrors.email && (
                                 <p className="text-xs text-destructive">{fieldErrors.email}</p>
@@ -156,10 +162,10 @@ export function LoginForm() {
                                 placeholder="Enter your password"
                                 autoComplete="current-password"
                                 disabled={isSubmitting}
-                                className={`flex h-10 w-full rounded-lg border bg-background px-3 py-2 text-sm 
-                  placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 
-                  focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50
-                  ${fieldErrors.password ? "border-destructive" : "border-input"}`}
+                                className={`flex h-11 w-full rounded-lg border bg-[var(--bg-glass)] px-3 py-2 text-sm 
+                  placeholder:text-[var(--text-secondary)] focus-visible:outline-none focus-visible:ring-2 
+                  focus-[var(--accent-primary)] disabled:cursor-not-allowed disabled:opacity-50
+                  ${fieldErrors.password ? "border-red-500" : "border-[var(--border-soft)]"}`}
                             />
                             {fieldErrors.password && (
                                 <p className="text-xs text-destructive">
@@ -172,10 +178,7 @@ export function LoginForm() {
                         <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="inline-flex w-full items-center justify-center rounded-lg bg-primary px-4 py-2.5 
-                text-sm font-medium text-primary-foreground shadow-sm transition-colors 
-                hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 
-                focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+                            className="btn-primary inline-flex w-full h-11 items-center justify-center disabled:pointer-events-none disabled:opacity-50 mt-4"
                         >
                             {isSubmitting ? (
                                 <div className="flex items-center gap-2">
@@ -191,9 +194,9 @@ export function LoginForm() {
 
                 {/* Footer */}
                 <div className="text-center mt-6 space-y-1">
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-[var(--text-secondary)]">
                         Don&apos;t have an account?{" "}
-                        <Link href="/signup" className="font-medium text-primary hover:text-primary/80 transition-colors">
+                        <Link href="/signup" className="font-medium text-[var(--accent-primary)] hover:opacity-80 transition-opacity">
                             Create one
                         </Link>
                     </p>

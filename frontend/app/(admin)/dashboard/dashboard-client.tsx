@@ -87,10 +87,10 @@ function AnimatedValue({
 
 function CardSkeleton() {
   return (
-    <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5 animate-pulse">
-      <div className="h-4 w-20 bg-zinc-800 rounded mb-3" />
-      <div className="h-8 w-24 bg-zinc-800 rounded mb-2" />
-      <div className="h-3 w-16 bg-zinc-800 rounded" />
+    <div className="rounded-lg border border-[var(--border-soft)] surface-card p-5 animate-pulse">
+      <div className="h-4 w-20 bg-[var(--bg-secondary)] rounded-lg mb-3" />
+      <div className="h-8 w-24 bg-[var(--bg-secondary)] rounded-lg mb-2" />
+      <div className="h-3 w-16 bg-[var(--bg-secondary)] rounded-lg" />
     </div>
   );
 }
@@ -100,13 +100,13 @@ function TableSkeleton() {
     <div className="space-y-1 animate-pulse">
       {[...Array(5)].map((_, i) => (
         <div key={i} className="flex items-center gap-4 px-5 py-3">
-          <div className="w-8 h-8 bg-zinc-800 rounded-full shrink-0" />
+          <div className="w-8 h-8 bg-[var(--bg-secondary)] rounded-lg shrink-0" />
           <div className="flex-1 space-y-1.5">
-            <div className="h-3 w-28 bg-zinc-800 rounded" />
-            <div className="h-2 w-20 bg-zinc-800 rounded" />
+            <div className="h-3 w-28 bg-[var(--bg-secondary)] rounded-lg" />
+            <div className="h-2 w-20 bg-[var(--bg-secondary)] rounded-lg" />
           </div>
-          <div className="h-3 w-12 bg-zinc-800 rounded" />
-          <div className="h-5 w-16 bg-zinc-800 rounded-full" />
+          <div className="h-3 w-12 bg-[var(--bg-secondary)] rounded-lg" />
+          <div className="h-5 w-16 bg-[var(--bg-secondary)] rounded-lg" />
         </div>
       ))}
     </div>
@@ -119,7 +119,7 @@ function ChartSkeleton() {
       {[40, 65, 45, 80, 55, 70, 50, 60, 75, 85, 55, 65].map((h, i) => (
         <div
           key={i}
-          className="flex-1 bg-zinc-800/50 rounded-t"
+          className="flex-1 bg-[var(--bg-secondary)] rounded-t"
           style={{ height: `${h}%` }}
         />
       ))}
@@ -133,24 +133,24 @@ function StatusBadge({ status }: { status: string }) {
   const cfg: Record<string, { label: string; cls: string }> = {
     completed: {
       label: "PASSED",
-      cls: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
+      cls: "bg-[var(--bg-surface-hover)] border-[var(--border-medium)] text-[var(--text-primary)]",
     },
     pending: {
       label: "PENDING",
-      cls: "bg-blue-500/15 text-blue-400 border-blue-500/30",
+      cls: "bg-[var(--bg-surface-hover)] text-[var(--text-secondary)] border-[var(--border-medium)]",
     },
     timed_out: {
       label: "TIMED OUT",
-      cls: "bg-amber-500/15 text-amber-400 border-amber-500/30",
+      cls: "bg-[var(--bg-surface-hover)] text-[var(--text-tertiary)] border-[var(--border-medium)]",
     },
   };
   const c = cfg[status] || {
     label: status.toUpperCase(),
-    cls: "bg-zinc-700 text-zinc-300 border-zinc-600",
+    cls: "bg-[var(--bg-secondary)] text-[var(--text-primary)] border-[var(--border-medium)]",
   };
   return (
     <span
-      className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${c.cls}`}
+      className={`px-2 py-0.5 rounded-lg text-[10px] font-bold border ${c.cls}`}
     >
       {c.label}
     </span>
@@ -163,7 +163,7 @@ function RankMedal({ rank }: { rank: number }) {
   const medals = ["🥇", "🥈", "🥉"];
   if (rank <= 3) return <span className="text-base">{medals[rank - 1]}</span>;
   return (
-    <span className="w-6 h-6 rounded-full bg-zinc-800 flex items-center justify-center text-[10px] font-bold text-zinc-400">
+    <span className="w-6 h-6 rounded-lg bg-[var(--bg-secondary)] flex items-center justify-center text-[10px] font-bold text-[var(--text-secondary)]">
       {rank}
     </span>
   );
@@ -182,9 +182,9 @@ function ChartTooltip({
 }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 shadow-xl text-xs">
-      <p className="text-zinc-400">{label}</p>
-      <p className="text-emerald-400 font-bold">
+    <div className="bg-[var(--bg-secondary)] border border-[var(--border-soft)] rounded-lg px-3 py-2 shadow-xl text-xs">
+      <p className="text-[var(--text-secondary)]">{label}</p>
+      <p className="text-[var(--text-primary)] font-bold">
         {payload[0].value.toFixed(1)} pts
       </p>
     </div>
@@ -277,7 +277,7 @@ export function DashboardClient() {
             setError(null);
             fetchData();
           }}
-          className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm hover:bg-emerald-700 transition-colors"
+          className="px-4 py-2 bg-[var(--accent-primary)] text-[var(--accent-foreground)] rounded-lg text-sm hover:opacity-80 transition-colors"
         >
           Retry
         </button>
@@ -286,18 +286,18 @@ export function DashboardClient() {
   }
 
   return (
-    <div className="p-6 space-y-6 text-white max-w-6xl mx-auto">
+    <div className="p-6 space-y-6 text-[var(--text-primary)] max-w-6xl mx-auto">
       {/* ─── Header ────────────────────────────────────────────── */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold">Dashboard</h1>
-          <p className="text-sm text-zinc-400 mt-0.5">
+          <h1 className="text-xl font-bold font-mono">Dashboard</h1>
+          <p className="text-sm text-[var(--text-secondary)] mt-0.5">
             Welcome back! Here&apos;s your assessment overview.
           </p>
         </div>
         <Link
           href="/tests"
-          className="px-4 py-2 rounded-lg bg-emerald-600 text-sm font-medium text-white hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-600/20 flex items-center gap-2"
+          className="px-4 py-2 rounded-lg bg-[var(--accent-primary)] text-sm font-medium text-[var(--accent-foreground)] hover:opacity-80 transition-all  flex items-center gap-2"
         >
           <svg
             className="w-4 h-4"
@@ -430,7 +430,7 @@ export function DashboardClient() {
             {loading ? (
               <ChartSkeleton />
             ) : chartData.length === 0 ? (
-              <div className="h-[200px] flex items-center justify-center text-zinc-500 text-sm">
+              <div className="h-[200px] flex items-center justify-center text-[var(--text-secondary)] text-sm">
                 Create an assessment and invite candidates to see score data
               </div>
             ) : (
@@ -450,25 +450,25 @@ export function DashboardClient() {
                       >
                         <stop
                           offset="0%"
-                          stopColor="#10b981"
+                          stopColor="var(--accent-primary)"
                           stopOpacity={0.3}
                         />
                         <stop
                           offset="100%"
-                          stopColor="#10b981"
+                          stopColor="var(--accent-primary)"
                           stopOpacity={0}
                         />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border-soft)" />
                     <XAxis
                       dataKey="name"
-                      tick={{ fill: "#71717a", fontSize: 10 }}
+                      tick={{ fill: "var(--text-tertiary)", fontSize: 10 }}
                       tickLine={false}
                       axisLine={false}
                     />
                     <YAxis
-                      tick={{ fill: "#71717a", fontSize: 10 }}
+                      tick={{ fill: "var(--text-tertiary)", fontSize: 10 }}
                       tickLine={false}
                       axisLine={false}
                     />
@@ -476,7 +476,7 @@ export function DashboardClient() {
                     <Area
                       type="monotone"
                       dataKey="score"
-                      stroke="#10b981"
+                      stroke="var(--accent-primary)"
                       strokeWidth={2}
                       fill="url(#scoreGrad)"
                     />
@@ -506,7 +506,7 @@ export function DashboardClient() {
                 </div>
                 <Link
                   href="/submissions"
-                  className="text-xs text-emerald-400 hover:text-emerald-300 transition-colors px-3 py-1.5 rounded-lg border border-zinc-800 hover:border-zinc-700"
+                  className="text-xs text-[var(--text-primary)] hover:text-[var(--text-primary)] transition-colors px-3 py-1.5 rounded-lg border border-[var(--border-soft)] hover:border-[var(--border-soft)]"
                 >
                   View All →
                 </Link>
@@ -517,9 +517,9 @@ export function DashboardClient() {
                 <TableSkeleton />
               ) : rankings.length === 0 ? (
                 <div className="py-12 text-center">
-                  <div className="w-12 h-12 rounded-xl bg-zinc-800/50 flex items-center justify-center mx-auto mb-3">
+                  <div className="w-12 h-12 rounded-lg bg-[var(--bg-secondary)] flex items-center justify-center mx-auto mb-3">
                     <svg
-                      className="w-6 h-6 text-zinc-600"
+                      className="w-6 h-6 text-[var(--text-tertiary)]"
                       fill="none"
                       viewBox="0 0 24 24"
                       strokeWidth={1.5}
@@ -532,15 +532,15 @@ export function DashboardClient() {
                       />
                     </svg>
                   </div>
-                  <p className="text-sm text-zinc-400">No submissions yet</p>
-                  <p className="text-xs text-zinc-500 mt-1">
+                  <p className="text-sm text-[var(--text-secondary)]">No submissions yet</p>
+                  <p className="text-xs text-[var(--text-secondary)] mt-1">
                     Invite candidates to start receiving submissions
                   </p>
                 </div>
               ) : (
-                <div className="divide-y divide-zinc-800/50 -mt-1">
+                <div className="divide-y divide-[var(--border-soft)] -mt-1">
                   {/* Header */}
-                  <div className="grid grid-cols-[1fr_1fr_70px_90px] gap-4 px-2 py-2 text-[10px] uppercase tracking-wider text-zinc-500 font-medium">
+                  <div className="grid grid-cols-[1fr_1fr_70px_90px] gap-4 px-2 py-2 text-[10px] uppercase tracking-wider text-[var(--text-secondary)] font-medium">
                     <span>Candidate</span>
                     <span>Assessment</span>
                     <span>Score</span>
@@ -570,20 +570,20 @@ export function DashboardClient() {
                       >
                         <Link
                           href={`/submissions/${sub._id}`}
-                          className="grid grid-cols-[1fr_1fr_70px_90px] gap-4 px-2 py-3 hover:bg-zinc-800/20 transition-colors items-center rounded-lg group"
+                          className="grid grid-cols-[1fr_1fr_70px_90px] gap-4 px-2 py-3 hover:bg-[var(--bg-secondary)]/20 transition-colors items-center rounded-lg group"
                         >
                           <div className="flex items-center gap-3 min-w-0">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-600/30 to-blue-600/30 border border-zinc-700 flex items-center justify-center text-xs font-semibold text-white shrink-0">
+                            <div className="w-8 h-8 rounded-lg bg-[var(--bg-secondary)] border border-[var(--border-soft)] flex items-center justify-center text-xs font-semibold text-[var(--text-primary)] shrink-0">
                               {email.charAt(0).toUpperCase()}
                             </div>
-                            <span className="text-sm text-zinc-300 truncate group-hover:text-white transition-colors">
+                            <span className="text-sm text-[var(--text-primary)] truncate group-hover:text-[var(--text-primary)] transition-colors">
                               {email}
                             </span>
                           </div>
-                          <span className="text-sm text-zinc-500 truncate">
+                          <span className="text-sm text-[var(--text-secondary)] truncate">
                             {testName}
                           </span>
-                          <span className="text-sm font-bold text-white">
+                          <span className="text-sm font-bold text-[var(--text-primary)]">
                             {typeof sub.scorePercentage === "number" ? `${sub.scorePercentage}` : "--"}
                           </span>
                           <StatusBadge status={sub.status} />
@@ -612,20 +612,20 @@ export function DashboardClient() {
                 <div className="space-y-3 animate-pulse">
                   {[...Array(3)].map((_, i) => (
                     <div key={i} className="flex items-center gap-3 py-2">
-                      <div className="w-8 h-8 bg-zinc-800 rounded-full" />
+                      <div className="w-8 h-8 bg-[var(--bg-secondary)] rounded-lg" />
                       <div className="flex-1 space-y-1.5">
-                        <div className="h-3 w-24 bg-zinc-800 rounded" />
-                        <div className="h-2 w-16 bg-zinc-800 rounded" />
+                        <div className="h-3 w-24 bg-[var(--bg-secondary)] rounded-lg" />
+                        <div className="h-2 w-16 bg-[var(--bg-secondary)] rounded-lg" />
                       </div>
-                      <div className="h-4 w-12 bg-zinc-800 rounded" />
+                      <div className="h-4 w-12 bg-[var(--bg-secondary)] rounded-lg" />
                     </div>
                   ))}
                 </div>
               ) : rankings.length === 0 ? (
                 <div className="py-10 text-center">
                   <p className="text-3xl mb-2">🏅</p>
-                  <p className="text-sm text-zinc-400">No rankings yet</p>
-                  <p className="text-xs text-zinc-500 mt-1">
+                  <p className="text-sm text-[var(--text-secondary)]">No rankings yet</p>
+                  <p className="text-xs text-[var(--text-secondary)] mt-1">
                     Scores will appear here once candidates submit
                   </p>
                 </div>
@@ -654,15 +654,15 @@ export function DashboardClient() {
                           delay: idx * 0.08,
                           ease: "easeOut" as const,
                         }}
-                        className="flex items-center gap-3 px-2 py-2.5 rounded-lg hover:bg-zinc-800/20 transition-colors"
+                        className="flex items-center gap-3 px-2 py-2.5 rounded-lg hover:bg-[var(--bg-secondary)]/20 transition-colors"
                       >
                         <RankMedal rank={idx + 1} />
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-white truncate">
+                          <p className="text-sm font-medium text-[var(--text-primary)] truncate">
                             {email}
                           </p>
                           {/* Score bar */}
-                          <div className="mt-1 h-1 w-full rounded-full bg-zinc-800 overflow-hidden">
+                          <div className="mt-1 h-1 w-full rounded-lg bg-[var(--bg-secondary)] overflow-hidden">
                             <motion.div
                               initial={{ width: 0 }}
                               animate={{
@@ -673,18 +673,18 @@ export function DashboardClient() {
                                 duration: 0.6,
                                 ease: "easeOut" as const,
                               }}
-                              className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400"
+                              className="h-full rounded-lg bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)]"
                             />
                           </div>
                         </div>
                         <div className="text-right">
-                          <span className="text-sm font-bold text-emerald-400 tabular-nums block">
+                          <span className="text-sm font-bold text-[var(--text-primary)] tabular-nums block">
                             {score}
-                            <span className="text-[9px] text-zinc-500 ml-0.5">
+                            <span className="text-[9px] text-[var(--text-secondary)] ml-0.5">
                               pts
                             </span>
                           </span>
-                          <span className="text-[10px] text-blue-400 font-medium">
+                          <span className="text-[10px] text-[var(--text-secondary)] font-medium">
                             {percentage.toFixed(2)}%
                           </span>
                         </div>
@@ -693,7 +693,7 @@ export function DashboardClient() {
                   })}
                   <Link
                     href="/submissions"
-                    className="block text-center text-[11px] text-zinc-500 hover:text-emerald-400 pt-3 pb-1 transition-colors font-medium uppercase tracking-wider"
+                    className="block text-center text-[11px] text-[var(--text-secondary)] hover:text-[var(--text-primary)] pt-3 pb-1 transition-colors font-medium uppercase tracking-wider"
                   >
                     View Full Leaderboard →
                   </Link>
@@ -724,26 +724,26 @@ function StatCard({
 }) {
   const colorMap = {
     emerald: {
-      text: "text-emerald-400",
-      bg: "bg-emerald-500/10",
-      border: "border-emerald-500/20",
-      glow: "shadow-emerald-500/5",
+      text: "text-[var(--text-primary)]",
+      bg: "bg-[var(--bg-surface-hover)]",
+      border: "border-[var(--accent-primary)]/15",
+      glow: "shadow-[var(--accent-primary)]/5",
     },
     blue: {
-      text: "text-blue-400",
-      bg: "bg-blue-500/10",
+      text: "text-[var(--text-secondary)]",
+      bg: "bg-blue-50 dark:bg-blue-500/10",
       border: "border-blue-500/20",
       glow: "shadow-blue-500/5",
     },
     purple: {
-      text: "text-purple-400",
-      bg: "bg-purple-500/10",
+      text: "text-[var(--text-primary)]",
+      bg: "bg-purple-50 dark:bg-purple-500/10",
       border: "border-purple-500/20",
       glow: "shadow-purple-500/5",
     },
     amber: {
-      text: "text-amber-400",
-      bg: "bg-amber-500/10",
+      text: "text-[var(--text-primary)]",
+      bg: "bg-amber-50 dark:bg-amber-500/10",
       border: "border-amber-500/20",
       glow: "shadow-amber-500/5",
     },
@@ -754,11 +754,11 @@ function StatCard({
   return (
     <motion.div variants={fadeUp}>
       <Card
-        className={`hover:shadow-lg ${c.glow} transition-all duration-300 hover:border-zinc-700`}
+        className={`hover:shadow-lg ${c.glow} transition-all duration-300 hover:border-[var(--border-soft)]`}
       >
         <CardContent className="p-5">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-medium text-zinc-400">{label}</span>
+            <span className="text-xs font-medium text-[var(--text-secondary)]">{label}</span>
             <div
               className={`w-8 h-8 rounded-lg ${c.bg} ${c.border} border flex items-center justify-center ${c.text}`}
             >

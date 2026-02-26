@@ -272,10 +272,10 @@ export function TestDetailClient({ testId }: TestDetailClientProps) {
   if (loading) {
     return (
       <div className="p-8 max-w-5xl mx-auto space-y-4">
-        <div className="h-6 w-48 bg-zinc-800 rounded animate-pulse" />
+        <div className="h-6 w-48 bg-[var(--bg-secondary)] rounded-lg animate-pulse" />
         <div className="grid grid-cols-3 gap-4">
-          <div className="col-span-2 h-64 bg-zinc-900 rounded-xl border border-zinc-800 animate-pulse" />
-          <div className="h-64 bg-zinc-900 rounded-xl border border-zinc-800 animate-pulse" />
+          <div className="col-span-2 h-64 bg-[var(--bg-surface)] rounded-lg border border-[var(--border-soft)] animate-pulse" />
+          <div className="h-64 bg-[var(--bg-surface)] rounded-lg border border-[var(--border-soft)] animate-pulse" />
         </div>
       </div>
     );
@@ -287,7 +287,7 @@ export function TestDetailClient({ testId }: TestDetailClientProps) {
         <p className="text-sm text-red-400">{error || "Test not found"}</p>
         <button
           onClick={load}
-          className="px-4 py-2 rounded-lg bg-emerald-600 text-sm text-white hover:bg-emerald-700 transition-colors"
+          className="px-4 py-2 rounded-lg bg-[var(--accent-primary)] text-sm text-[var(--accent-foreground)] hover:opacity-80 transition-colors"
         >
           Retry
         </button>
@@ -296,11 +296,11 @@ export function TestDetailClient({ testId }: TestDetailClientProps) {
   }
 
   return (
-    <div className="p-6 space-y-6 max-w-5xl mx-auto text-white">
+    <div className="p-6 space-y-6 max-w-5xl mx-auto text-[var(--text-primary)]">
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold">Edit Assessment</h1>
-          <p className="text-sm text-zinc-400 mt-0.5">{test.title}</p>
+          <p className="text-sm text-[var(--text-secondary)] mt-0.5">{test.title}</p>
         </div>
         <button
           onClick={handleDelete}
@@ -343,29 +343,29 @@ export function TestDetailClient({ testId }: TestDetailClientProps) {
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-zinc-300">
+                  <label className="text-xs font-medium text-[var(--text-primary)]">
                     Title
                   </label>
                   <input
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="w-full h-9 rounded-md border border-zinc-700 bg-zinc-900/60 px-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                    className="w-full h-9 rounded-lg border border-[var(--border-soft)] bg-[var(--bg-surface)] px-3 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]/40"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-zinc-300">
+                  <label className="text-xs font-medium text-[var(--text-primary)]">
                     Description
                   </label>
                   <textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     rows={4}
-                    className="w-full rounded-md border border-zinc-700 bg-zinc-900/60 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 resize-none"
+                    className="w-full rounded-lg border border-[var(--border-soft)] bg-[var(--bg-surface)] px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]/40 resize-none"
                   />
                 </div>
                 <div className="grid grid-cols-3 gap-3">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-zinc-300">
+                    <label className="text-xs font-medium text-[var(--text-primary)]">
                       Difficulty
                     </label>
                     <select
@@ -375,7 +375,7 @@ export function TestDetailClient({ testId }: TestDetailClientProps) {
                           e.target.value as "easy" | "medium" | "hard",
                         )
                       }
-                      className="w-full h-9 rounded-md border border-zinc-700 bg-zinc-900/60 px-2 text-xs text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+                      className="w-full h-9 rounded-lg border border-[var(--border-soft)] bg-[var(--bg-surface)] px-2 text-xs text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]/30"
                     >
                       <option value="easy">Easy</option>
                       <option value="medium">Medium</option>
@@ -383,7 +383,7 @@ export function TestDetailClient({ testId }: TestDetailClientProps) {
                     </select>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-zinc-300">
+                    <label className="text-xs font-medium text-[var(--text-primary)]">
                       Time Limit (min)
                     </label>
                     <input
@@ -393,7 +393,7 @@ export function TestDetailClient({ testId }: TestDetailClientProps) {
                       onChange={(e) =>
                         setTimeLimit(Math.max(1, parseInt(e.target.value) || 1))
                       }
-                      className="w-full h-9 rounded-md border border-zinc-700 bg-zinc-900/60 px-2 text-xs text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+                      className="w-full h-9 rounded-lg border border-[var(--border-soft)] bg-[var(--bg-surface)] px-2 text-xs text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]/30"
                     />
                   </div>
                   {/* Language support moved to global Test schema */}
@@ -412,14 +412,14 @@ export function TestDetailClient({ testId }: TestDetailClientProps) {
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex justify-between items-center mb-1">
-                  <p className="text-[11px] text-zinc-500">
+                  <p className="text-[11px] text-[var(--text-tertiary)]">
                     {testCases.length} case
                     {testCases.length === 1 ? "" : "s"}
                   </p>
                   <button
                     type="button"
                     onClick={addTestCase}
-                    className="px-2.5 py-1 rounded-md border border-zinc-700 text-[11px] text-zinc-200 hover:bg-zinc-800 transition-colors"
+                    className="px-2.5 py-1 rounded-lg border border-[var(--border-soft)] text-[11px] text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] transition-colors"
                   >
                     + Add case
                   </button>
@@ -428,14 +428,14 @@ export function TestDetailClient({ testId }: TestDetailClientProps) {
                   {testCases.map((tc, idx) => (
                     <div
                       key={idx}
-                      className="rounded-lg border border-zinc-800 bg-[#0d1117] p-3 space-y-2"
+                      className="rounded-lg border border-[var(--border-soft)] bg-[var(--bg-body)] p-3 space-y-2"
                     >
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] text-zinc-500 font-medium uppercase">
+                        <span className="text-[10px] text-[var(--text-tertiary)] font-medium uppercase">
                           Case #{idx + 1}
                         </span>
                         <div className="flex items-center gap-3">
-                          <label className="flex items-center gap-1.5 text-[10px] text-zinc-500">
+                          <label className="flex items-center gap-1.5 text-[10px] text-[var(--text-tertiary)]">
                             Hidden
                             <Switch
                               checked={tc.hidden}
@@ -448,7 +448,7 @@ export function TestDetailClient({ testId }: TestDetailClientProps) {
                             <button
                               type="button"
                               onClick={() => removeTestCase(idx)}
-                              className="p-1 rounded text-zinc-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                              className="p-1 rounded-lg text-[var(--text-tertiary)] hover:text-red-400 hover:bg-red-500/10 transition-colors"
                             >
                               ✕
                             </button>
@@ -457,7 +457,7 @@ export function TestDetailClient({ testId }: TestDetailClientProps) {
                       </div>
                       <div className="grid grid-cols-2 gap-2">
                         <div className="space-y-1">
-                          <p className="text-[10px] text-zinc-500 uppercase">
+                          <p className="text-[10px] text-[var(--text-tertiary)] uppercase">
                             Input
                           </p>
                           <textarea
@@ -466,11 +466,11 @@ export function TestDetailClient({ testId }: TestDetailClientProps) {
                               updateTestCase(idx, "input", e.target.value)
                             }
                             rows={2}
-                            className="w-full rounded-md border border-zinc-800 bg-zinc-950 px-2 py-1.5 text-[11px] font-mono text-emerald-300 focus:outline-none focus:ring-1 focus:ring-emerald-500/40 resize-none"
+                            className="w-full rounded-lg border border-[var(--border-soft)] bg-[var(--bg-body)] px-2 py-1.5 text-[11px] font-mono text-[var(--accent-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)]/30 resize-none"
                           />
                         </div>
                         <div className="space-y-1">
-                          <p className="text-[10px] text-zinc-500 uppercase">
+                          <p className="text-[10px] text-[var(--text-tertiary)] uppercase">
                             Expected Output
                           </p>
                           <textarea
@@ -483,7 +483,7 @@ export function TestDetailClient({ testId }: TestDetailClientProps) {
                               )
                             }
                             rows={2}
-                            className="w-full rounded-md border border-zinc-800 bg-zinc-950 px-2 py-1.5 text-[11px] font-mono text-emerald-300 focus:outline-none focus:ring-1 focus:ring-emerald-500/40 resize-none"
+                            className="w-full rounded-lg border border-[var(--border-soft)] bg-[var(--bg-body)] px-2 py-1.5 text-[11px] font-mono text-[var(--accent-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)]/30 resize-none"
                           />
                         </div>
                       </div>
@@ -498,7 +498,7 @@ export function TestDetailClient({ testId }: TestDetailClientProps) {
             <button
               type="button"
               onClick={load}
-              className="px-4 py-2 rounded-lg border border-zinc-700 text-xs text-zinc-300 hover:bg-zinc-800 transition-colors"
+              className="px-4 py-2 rounded-lg border border-[var(--border-soft)] text-xs text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] transition-colors"
             >
               Reset
             </button>
@@ -506,7 +506,7 @@ export function TestDetailClient({ testId }: TestDetailClientProps) {
               type="button"
               onClick={handleSave}
               disabled={saving}
-              className="px-5 py-2 rounded-lg bg-emerald-600 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors"
+              className="px-5 py-2 rounded-lg bg-[var(--accent-primary)] text-xs font-medium text-[var(--accent-foreground)] hover:opacity-80 disabled:opacity-50 transition-colors"
             >
               {saving ? "Saving..." : "Save Changes"}
             </button>
@@ -533,7 +533,7 @@ export function TestDetailClient({ testId }: TestDetailClientProps) {
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-zinc-300">
+                  <label className="text-xs font-medium text-[var(--text-primary)]">
                     Emails
                   </label>
                   <textarea
@@ -541,14 +541,14 @@ export function TestDetailClient({ testId }: TestDetailClientProps) {
                     onChange={(e) => setInviteEmails(e.target.value)}
                     rows={3}
                     placeholder="john@example.com, jane@example.com"
-                    className="w-full rounded-md border border-zinc-700 bg-zinc-900/60 px-3 py-2 text-xs text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/40 resize-none"
+                    className="w-full rounded-lg border border-[var(--border-soft)] bg-[var(--bg-surface)] px-3 py-2 text-xs text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]/30 resize-none"
                   />
-                  <p className="text-[10px] text-zinc-500">
+                  <p className="text-[10px] text-[var(--text-tertiary)]">
                     Comma-separated or one per line
                   </p>
                 </div>
                 {inviteError && (
-                  <div className="rounded-md bg-red-500/10 border border-red-500/30 px-3 py-1.5 text-[11px] text-red-400">
+                  <div className="rounded-lg bg-red-500/10 border border-red-500/30 px-3 py-1.5 text-[11px] text-red-400">
                     {inviteError}
                   </div>
                 )}
@@ -556,7 +556,7 @@ export function TestDetailClient({ testId }: TestDetailClientProps) {
                   type="button"
                   onClick={handleSendInvites}
                   disabled={inviteLoading}
-                  className="w-full px-4 py-2 rounded-lg bg-emerald-600 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors"
+                  className="w-full px-4 py-2 rounded-lg bg-[var(--accent-primary)] text-xs font-medium text-[var(--accent-foreground)] hover:opacity-80 disabled:opacity-50 transition-colors"
                 >
                   {inviteLoading ? "Sending..." : "Send Invites"}
                 </button>
@@ -571,28 +571,30 @@ export function TestDetailClient({ testId }: TestDetailClientProps) {
                 <CardDescription>
                   {invitations.length === 0
                     ? "No invitations have been sent yet"
-                    : `${invitations.length} invitation${
-                        invitations.length === 1 ? "" : "s"
-                      }`}
+                    : `${invitations.length} invitation${invitations.length === 1 ? "" : "s"
+                    }`}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-2">
                 {invitations.length === 0 ? (
-                  <p className="text-[11px] text-zinc-500">
+                  <p className="text-[11px] text-[var(--text-tertiary)]">
                     Send invites to see them listed here.
                   </p>
                 ) : (
-                  <div className="space-y-1 max-h-64 overflow-y-auto">
+                  <div className="space-y-1 max-h-64 overflow-y-auto overflow-x-hidden">
                     {invitations.map((inv) => (
                       <div
                         key={inv._id}
-                        className="flex items-center justify-between gap-2 rounded-md border border-zinc-800 bg-zinc-900/40 px-2.5 py-2"
+                        className="flex items-center justify-between gap-3 rounded-lg border border-[var(--border-soft)] bg-[var(--bg-surface)]/40 px-2.5 py-2 min-w-0"
                       >
-                        <div className="flex flex-col">
-                          <span className="text-xs text-zinc-100">
+                        <div className="flex flex-col min-w-0 flex-1">
+                          <span
+                            className="text-xs text-[var(--text-primary)] truncate"
+                            title={inv.email}
+                          >
                             {inv.email}
                           </span>
-                          <span className="text-[10px] text-zinc-500">
+                          <span className="text-[10px] text-[var(--text-tertiary)]">
                             {inv.used
                               ? "Used"
                               : new Date(inv.expiresAt) < new Date()
@@ -600,14 +602,14 @@ export function TestDetailClient({ testId }: TestDetailClientProps) {
                                 : "Active"}
                           </span>
                         </div>
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1.5 shrink-0">
                           <button
                             type="button"
                             onClick={() => handleResendInvite(inv._id)}
                             disabled={
                               inv.used || new Date(inv.expiresAt) < new Date()
                             }
-                            className="px-2 py-1 rounded-md border border-zinc-700 text-[10px] text-zinc-300 hover:bg-zinc-800 disabled:opacity-40 transition-colors"
+                            className="px-2 py-1 rounded-lg border border-[var(--border-soft)] text-[10px] text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] disabled:opacity-40 transition-colors"
                           >
                             Resend
                           </button>
@@ -615,7 +617,7 @@ export function TestDetailClient({ testId }: TestDetailClientProps) {
                             <button
                               type="button"
                               onClick={() => handleRemoveInvite(inv._id)}
-                              className="px-2 py-1 rounded-md border border-zinc-800 text-[10px] text-zinc-500 hover:bg-red-500/10 hover:text-red-400 transition-colors"
+                              className="px-2 py-1 rounded-lg border border-[var(--border-soft)] text-[10px] text-[var(--text-tertiary)] hover:bg-red-500/10 hover:text-red-400 transition-colors"
                             >
                               Remove
                             </button>

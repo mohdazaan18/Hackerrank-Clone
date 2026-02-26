@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 
 interface UseTimerOptions {
-    /** Time limit in minutes */
-    timeLimitMinutes: number;
-    /** Timestamp when the test began (for resuming sessions) */
-    startTime?: number;
+    /** Absolute timestamp (ms) when the test expires — from server */
+    expiresAt: number | null;
+    /** Total duration in minutes — for progress calculation */
+    totalMinutes: number;
     /** Callback when timer expires */
     onExpire: () => void;
 }
@@ -34,52 +34,71 @@ function formatTime(totalSeconds: number): string {
         .join(":");
 }
 
+/**
+ * Server-authoritative timer hook.
+ *
+ * `expiresAt` is an absolute timestamp from the server.
+ * Remaining time = expiresAt - Date.now() (client clock).
+ * The server clock offset was already accounted for when
+ * the caller computed `expiresAt` (adjusted by serverTime delta).
+ */
 export function useTimer({
-    timeLimitMinutes,
-    startTime,
+    expiresAt,
+    totalMinutes,
     onExpire,
 }: UseTimerOptions): UseTimerReturn {
-    const totalSeconds = timeLimitMinutes * 60;
-
-    // Calculate initial time left lazily
-    const [timeLeft, setTimeLeft] = useState(() => {
-        const elapsedSeconds = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
-        return Math.max(0, totalSeconds - elapsedSeconds);
-    });
-    const [isExpired, setIsExpired] = useState(false);
+    const totalSeconds = totalMinutes * 60;
     const onExpireRef = useRef(onExpire);
+    const hasFiredRef = useRef(false);
 
     useEffect(() => {
         onExpireRef.current = onExpire;
     }, [onExpire]);
 
-    // Reset when timeLimitMinutes changes (e.g. test loads async)
-    useEffect(() => {
-        const elapsed = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
-        const remaining = Math.max(0, (timeLimitMinutes * 60) - elapsed);
-        setTimeLeft(remaining);
-        setIsExpired(remaining <= 0);
-    }, [timeLimitMinutes, startTime]);
+    const computeRemaining = () => {
+        if (!expiresAt) return totalSeconds; // Not loaded yet — show full
+        return Math.max(0, Math.floor((expiresAt - Date.now()) / 1000));
+    };
 
+    const [timeLeft, setTimeLeft] = useState(computeRemaining);
+    const [isExpired, setIsExpired] = useState(false);
+
+    // Reset when expiresAt changes (e.g. session fetched)
     useEffect(() => {
-        if (isExpired) return;
+        if (!expiresAt) return;
+        const remaining = computeRemaining();
+        setTimeLeft(remaining);
+        if (remaining <= 0) {
+            setIsExpired(true);
+            if (!hasFiredRef.current) {
+                hasFiredRef.current = true;
+                setTimeout(() => onExpireRef.current(), 0);
+            }
+        } else {
+            setIsExpired(false);
+            hasFiredRef.current = false;
+        }
+    }, [expiresAt]);
+
+    // Countdown interval
+    useEffect(() => {
+        if (isExpired || !expiresAt) return;
 
         const interval = setInterval(() => {
-            setTimeLeft((prev) => {
-                const next = prev - 1;
-                if (next <= 0) {
-                    clearInterval(interval);
-                    setIsExpired(true);
-                    // Fire callback in next tick to avoid state update during render
+            const remaining = computeRemaining();
+            setTimeLeft(remaining);
+            if (remaining <= 0) {
+                clearInterval(interval);
+                setIsExpired(true);
+                if (!hasFiredRef.current) {
+                    hasFiredRef.current = true;
                     setTimeout(() => onExpireRef.current(), 0);
-                    return 0;
                 }
-                return next;
-            });
+            }
         }, 1000);
 
         return () => clearInterval(interval);
-    }, [isExpired]);
+    }, [isExpired, expiresAt]);
 
     const progress = totalSeconds > 0 ? (timeLeft / totalSeconds) * 100 : 0;
 

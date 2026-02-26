@@ -64,7 +64,7 @@ export default function InvitePage({ params }: InvitePageProps) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="w-full max-w-md text-center space-y-6 p-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 mx-auto">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-lg bg-primary/10 mx-auto">
             <svg
               className="w-8 h-8 text-primary animate-pulse"
               fill="none"
@@ -100,7 +100,7 @@ export default function InvitePage({ params }: InvitePageProps) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="w-full max-w-md text-center space-y-6 p-8">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-destructive/10 mx-auto">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-lg bg-destructive/10 mx-auto">
           <svg
             className="w-8 h-8 text-destructive"
             fill="none"

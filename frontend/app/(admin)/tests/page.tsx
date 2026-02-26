@@ -38,13 +38,13 @@ const fadeUp = {
 
 function TestCardSkeleton() {
   return (
-    <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5 animate-pulse">
-      <div className="h-5 w-40 bg-zinc-800 rounded mb-3" />
-      <div className="h-3 w-full bg-zinc-800 rounded mb-2" />
-      <div className="h-3 w-2/3 bg-zinc-800 rounded mb-4" />
+    <div className="rounded-lg border border-[var(--border-soft)] bg-[var(--bg-surface)] p-5 animate-pulse">
+      <div className="h-5 w-40 bg-[var(--bg-secondary)] rounded-lg mb-3" />
+      <div className="h-3 w-full bg-[var(--bg-secondary)] rounded-lg mb-2" />
+      <div className="h-3 w-2/3 bg-[var(--bg-secondary)] rounded-lg mb-4" />
       <div className="flex gap-2">
-        <div className="h-5 w-16 bg-zinc-800 rounded-full" />
-        <div className="h-5 w-20 bg-zinc-800 rounded-full" />
+        <div className="h-5 w-16 bg-[var(--bg-secondary)] rounded-lg" />
+        <div className="h-5 w-20 bg-[var(--bg-secondary)] rounded-lg" />
       </div>
     </div>
   );
@@ -252,19 +252,19 @@ export default function TestsPage() {
   // ═══════════════════════════════════════════════════════════
 
   return (
-    <div className="p-6 text-white space-y-6 max-w-5xl mx-auto">
+    <div className="p-6 text-[var(--text-primary)] space-y-6 max-w-5xl mx-auto">
       {/* ─── Header ──────────────────────────────────────────── */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold">Assessments</h1>
-          <p className="text-sm text-zinc-400 mt-0.5">
+          <p className="text-sm text-[var(--text-secondary)] mt-0.5">
             Create and manage coding challenges
           </p>
         </div>
         {!showCreate && !createdTestId && (
           <button
             onClick={() => setShowCreate(true)}
-            className="px-4 py-2 rounded-lg bg-emerald-600 text-sm font-medium text-white hover:bg-emerald-700 transition-colors flex items-center gap-2"
+            className="px-4 py-2 rounded-lg btn-primary hover:opacity-80 transition-colors flex items-center gap-2"
           >
             <svg
               className="w-4 h-4"
@@ -308,7 +308,7 @@ export default function TestsPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <span className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-emerald-600/20 text-emerald-400 text-xs font-bold">
+                  <span className="inline-flex items-center justify-center w-6 h-6 rounded-lg bg-[var(--accent-primary)]/20 text-[var(--accent-foreground)] text-xs font-bold">
                     1
                   </span>
                   Basic Information
@@ -320,20 +320,20 @@ export default function TestsPage() {
               <CardContent className="space-y-4">
                 {/* Title */}
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-zinc-300">
+                  <label className="text-sm font-medium text-[var(--text-primary)]">
                     Title *
                   </label>
                   <input
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="e.g. Reverse a Linked List"
-                    className="w-full h-10 rounded-lg border border-zinc-700 bg-zinc-800/50 px-3 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all"
+                    className="w-full h-10 rounded-lg border border-[var(--border-soft)] bg-[var(--bg-secondary)]/50 px-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]/40 focus:border-[var(--accent-primary)] transition-all"
                   />
                 </div>
 
                 {/* Description */}
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-zinc-300">
+                  <label className="text-sm font-medium text-[var(--text-primary)]">
                     Problem Description *
                   </label>
                   <textarea
@@ -341,14 +341,14 @@ export default function TestsPage() {
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Describe the problem, constraints, and expected logic..."
                     rows={4}
-                    className="w-full rounded-lg border border-zinc-700 bg-zinc-800/50 px-3 py-2.5 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 resize-none transition-all"
+                    className="w-full rounded-lg border border-[var(--border-soft)] bg-[var(--bg-secondary)]/50 px-3 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]/40 focus:border-[var(--accent-primary)] resize-none transition-all"
                   />
                 </div>
 
                 {/* Row: Difficulty + Category + Time Limit */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-zinc-300">
+                    <label className="text-sm font-medium text-[var(--text-primary)]">
                       Difficulty
                     </label>
                     <select
@@ -358,7 +358,7 @@ export default function TestsPage() {
                           e.target.value as "easy" | "medium" | "hard",
                         )
                       }
-                      className="w-full h-10 rounded-lg border border-zinc-700 bg-zinc-800/50 px-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all"
+                      className="w-full h-10 rounded-lg border border-[var(--border-soft)] bg-[var(--bg-secondary)]/50 px-3 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]/40 transition-all"
                     >
                       <option value="easy">🟢 Easy</option>
                       <option value="medium">🟡 Medium</option>
@@ -366,13 +366,13 @@ export default function TestsPage() {
                     </select>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-zinc-300">
+                    <label className="text-sm font-medium text-[var(--text-primary)]">
                       Category
                     </label>
                     <select
                       value={category}
                       onChange={(e) => setCategory(e.target.value)}
-                      className="w-full h-10 rounded-lg border border-zinc-700 bg-zinc-800/50 px-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all capitalize"
+                      className="w-full h-10 rounded-lg border border-[var(--border-soft)] bg-[var(--bg-secondary)]/50 px-3 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]/40 transition-all capitalize"
                     >
                       {CATEGORIES.map((c) => (
                         <option key={c} value={c}>
@@ -382,7 +382,7 @@ export default function TestsPage() {
                     </select>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-zinc-300">
+                    <label className="text-sm font-medium text-[var(--text-primary)]">
                       Time Limit
                     </label>
                     <div className="flex items-center gap-2">
@@ -395,9 +395,9 @@ export default function TestsPage() {
                           )
                         }
                         min={1}
-                        className="flex-1 h-10 rounded-lg border border-zinc-700 bg-zinc-800/50 px-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all"
+                        className="flex-1 h-10 rounded-lg border border-[var(--border-soft)] bg-[var(--bg-secondary)]/50 px-3 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]/40 transition-all"
                       />
-                      <span className="text-xs text-zinc-500 shrink-0">
+                      <span className="text-xs text-[var(--text-tertiary)] shrink-0">
                         min
                       </span>
                     </div>
@@ -414,7 +414,7 @@ export default function TestsPage() {
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
                     <CardTitle className="flex items-center gap-2">
-                      <span className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-blue-600/20 text-blue-400 text-xs font-bold">
+                      <span className="inline-flex items-center justify-center w-6 h-6 rounded-lg bg-[var(--accent-primary)]/20 text-[var(--text-secondary)] text-xs font-bold">
                         2
                       </span>
                       Test Cases
@@ -426,7 +426,7 @@ export default function TestsPage() {
                   </div>
                   <button
                     onClick={addTestCase}
-                    className="px-3 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 text-xs font-medium text-emerald-400 hover:bg-zinc-700 transition-colors"
+                    className="px-3 py-1.5 rounded-lg bg-[var(--bg-secondary)] border border-[var(--border-soft)] text-xs font-medium text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] transition-colors"
                   >
                     + Add Case
                   </button>
@@ -442,16 +442,16 @@ export default function TestsPage() {
                       animate={{ opacity: 1, scale: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.95, y: -10 }}
                       transition={{ duration: 0.2 }}
-                      className="rounded-lg border border-zinc-800 bg-[#0d1117] p-4 space-y-3"
+                      className="rounded-lg border border-[var(--border-soft)] bg-[var(--bg-body)] p-4 space-y-3"
                     >
                       {/* Header row */}
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-tertiary)]">
                           Case #{idx + 1}
                         </span>
                         <div className="flex items-center gap-3">
                           <label className="flex items-center gap-2 cursor-pointer">
-                            <span className="text-[10px] text-zinc-500">
+                            <span className="text-[10px] text-[var(--text-tertiary)]">
                               Hidden
                             </span>
                             <Switch
@@ -464,7 +464,7 @@ export default function TestsPage() {
                           {testCases.length > 1 && (
                             <button
                               onClick={() => removeTestCase(idx)}
-                              className="p-1 rounded hover:bg-red-500/10 text-zinc-500 hover:text-red-400 transition-colors"
+                              className="p-1 rounded-lg hover:bg-red-500/10 text-[var(--text-tertiary)] hover:text-red-400 transition-colors"
                             >
                               <svg
                                 className="w-4 h-4"
@@ -486,7 +486,7 @@ export default function TestsPage() {
                       {/* Input / Output */}
                       <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1">
-                          <span className="text-[10px] uppercase text-zinc-500 font-medium">
+                          <span className="text-[10px] uppercase text-[var(--text-tertiary)] font-medium">
                             Input
                           </span>
                           <textarea
@@ -496,11 +496,11 @@ export default function TestsPage() {
                             }
                             placeholder="e.g. [2,7,11,15], 9"
                             rows={2}
-                            className="w-full rounded-lg border border-zinc-800 bg-zinc-900/80 px-2.5 py-1.5 text-xs font-mono text-emerald-300 placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-emerald-500 resize-none transition-all"
+                            className="w-full rounded-lg border border-[var(--border-soft)] bg-[var(--bg-surface)]/80 px-2.5 py-1.5 text-xs font-mono text-[var(--text-secondary)] placeholder:text-[var(--text-tertiary)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)] resize-none transition-all"
                           />
                         </div>
                         <div className="space-y-1">
-                          <span className="text-[10px] uppercase text-zinc-500 font-medium">
+                          <span className="text-[10px] uppercase text-[var(--text-tertiary)] font-medium">
                             Expected Output
                           </span>
                           <textarea
@@ -514,7 +514,7 @@ export default function TestsPage() {
                             }
                             placeholder="e.g. [0,1]"
                             rows={2}
-                            className="w-full rounded-lg border border-zinc-800 bg-zinc-900/80 px-2.5 py-1.5 text-xs font-mono text-emerald-300 placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-emerald-500 resize-none transition-all"
+                            className="w-full rounded-lg border border-[var(--border-soft)] bg-[var(--bg-surface)]/80 px-2.5 py-1.5 text-xs font-mono text-[var(--text-secondary)] placeholder:text-[var(--text-tertiary)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)] resize-none transition-all"
                           />
                         </div>
                       </div>
@@ -533,7 +533,7 @@ export default function TestsPage() {
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle className="flex items-center gap-2">
-                      <span className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-purple-600/20 text-purple-400 text-xs font-bold">
+                      <span className="inline-flex items-center justify-center w-6 h-6 rounded-lg bg-purple-600/20 text-purple-400 text-xs font-bold">
                         3
                       </span>
                       Advanced Settings
@@ -541,7 +541,7 @@ export default function TestsPage() {
                     <motion.svg
                       animate={{ rotate: showAdvanced ? 180 : 0 }}
                       transition={{ duration: 0.2 }}
-                      className="w-4 h-4 text-zinc-500"
+                      className="w-4 h-4 text-[var(--text-tertiary)]"
                       fill="none"
                       viewBox="0 0 24 24"
                       strokeWidth={2}
@@ -570,12 +570,12 @@ export default function TestsPage() {
                   >
                     <CardContent className="space-y-4 pt-2">
                       {/* Enable Replay */}
-                      <div className="flex items-center justify-between py-2.5 px-3 rounded-lg bg-zinc-800/30 border border-zinc-800">
+                      <div className="flex items-center justify-between py-2.5 px-3 rounded-lg bg-[var(--bg-secondary)]/30 border border-[var(--border-soft)]">
                         <div>
-                          <p className="text-sm font-medium text-zinc-200">
+                          <p className="text-sm font-medium text-[var(--text-primary)]">
                             Enable Code Replay
                           </p>
-                          <p className="text-xs text-zinc-500">
+                          <p className="text-xs text-[var(--text-tertiary)]">
                             Record code snapshots for playback review
                           </p>
                         </div>
@@ -586,12 +586,12 @@ export default function TestsPage() {
                       </div>
 
                       {/* Enable AI Evaluation */}
-                      <div className="flex items-center justify-between py-2.5 px-3 rounded-lg bg-zinc-800/30 border border-zinc-800">
+                      <div className="flex items-center justify-between py-2.5 px-3 rounded-lg bg-[var(--bg-secondary)]/30 border border-[var(--border-soft)]">
                         <div>
-                          <p className="text-sm font-medium text-zinc-200">
+                          <p className="text-sm font-medium text-[var(--text-primary)]">
                             Enable AI Evaluation
                           </p>
-                          <p className="text-xs text-zinc-500">
+                          <p className="text-xs text-[var(--text-tertiary)]">
                             Auto-generate code quality reports &amp; interview
                             questions
                           </p>
@@ -603,12 +603,12 @@ export default function TestsPage() {
                       </div>
 
                       {/* Enable Anti-Cheat */}
-                      <div className="flex items-center justify-between py-2.5 px-3 rounded-lg bg-zinc-800/30 border border-zinc-800">
+                      <div className="flex items-center justify-between py-2.5 px-3 rounded-lg bg-[var(--bg-secondary)]/30 border border-[var(--border-soft)]">
                         <div>
-                          <p className="text-sm font-medium text-zinc-200">
+                          <p className="text-sm font-medium text-[var(--text-primary)]">
                             Enable Anti-Cheat
                           </p>
-                          <p className="text-xs text-zinc-500">
+                          <p className="text-xs text-[var(--text-tertiary)]">
                             Track tab switches, paste events, and behavior
                             metrics
                           </p>
@@ -628,18 +628,18 @@ export default function TestsPage() {
             <div className="flex justify-end gap-3 pt-1">
               <button
                 onClick={resetForm}
-                className="px-4 py-2.5 rounded-lg border border-zinc-700 text-sm text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
+                className="px-4 py-2.5 rounded-lg border border-[var(--border-soft)] text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] transition-colors"
               >
                 Discard
               </button>
               <button
                 onClick={handleCreate}
                 disabled={isSubmitting}
-                className="px-6 py-2.5 rounded-lg bg-emerald-600 text-sm font-medium text-white hover:bg-emerald-700 transition-all disabled:opacity-50 flex items-center gap-2 shadow-lg shadow-emerald-600/20"
+                className="px-6 py-2.5 rounded-lg btn-primary hover:opacity-80 transition-all disabled:opacity-50 flex items-center gap-2 "
               >
                 {isSubmitting ? (
                   <>
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-[var(--accent-foreground)] border-t-transparent" />
                     Publishing...
                   </>
                 ) : (
@@ -673,9 +673,9 @@ export default function TestsPage() {
             <Card>
               <CardHeader>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-emerald-600/20 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-lg bg-[var(--accent-primary)]/20 flex items-center justify-center">
                     <svg
-                      className="w-5 h-5 text-emerald-400"
+                      className="w-5 h-5 text-[var(--text-primary)]"
                       fill="none"
                       viewBox="0 0 24 24"
                       strokeWidth={2}
@@ -689,7 +689,7 @@ export default function TestsPage() {
                     </svg>
                   </div>
                   <div>
-                    <CardTitle className="text-emerald-400">
+                    <CardTitle className="text-[var(--text-primary)]">
                       Assessment Published!
                     </CardTitle>
                     <CardDescription>
@@ -704,9 +704,9 @@ export default function TestsPage() {
                     {...fadeUp}
                     className="text-center py-6 space-y-3"
                   >
-                    <div className="w-12 h-12 rounded-full bg-emerald-600/20 flex items-center justify-center mx-auto">
+                    <div className="w-12 h-12 rounded-lg bg-[var(--accent-primary)]/20 flex items-center justify-center mx-auto">
                       <svg
-                        className="w-6 h-6 text-emerald-400"
+                        className="w-6 h-6 text-[var(--text-primary)]"
                         fill="none"
                         viewBox="0 0 24 24"
                         strokeWidth={2}
@@ -719,16 +719,16 @@ export default function TestsPage() {
                         />
                       </svg>
                     </div>
-                    <p className="text-sm font-medium text-emerald-400">
+                    <p className="text-sm font-medium text-[var(--text-primary)]">
                       Invitations Sent!
                     </p>
-                    <p className="text-xs text-zinc-400">
+                    <p className="text-xs text-[var(--text-secondary)]">
                       Candidates will receive an email with their unique test
                       link.
                     </p>
                     <button
                       onClick={resetForm}
-                      className="mt-2 px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 text-sm text-zinc-300 hover:bg-zinc-700 transition-colors"
+                      className="mt-2 px-4 py-2 rounded-lg bg-[var(--bg-secondary)] border border-[var(--border-soft)] text-sm text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] transition-colors"
                     >
                       Back to Assessments
                     </button>
@@ -736,7 +736,7 @@ export default function TestsPage() {
                 ) : (
                   <>
                     <div className="space-y-1.5">
-                      <label className="text-sm font-medium text-zinc-300">
+                      <label className="text-sm font-medium text-[var(--text-primary)]">
                         Candidate Emails
                       </label>
                       <textarea
@@ -744,9 +744,9 @@ export default function TestsPage() {
                         onChange={(e) => setEmailsInput(e.target.value)}
                         placeholder="Enter emails separated by commas or new lines&#10;e.g. john@example.com, jane@example.com"
                         rows={4}
-                        className="w-full rounded-lg border border-zinc-700 bg-zinc-800/50 px-3 py-2.5 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 resize-none transition-all font-mono"
+                        className="w-full rounded-lg border border-[var(--border-soft)] bg-[var(--bg-secondary)]/50 px-3 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]/40 resize-none transition-all font-mono"
                       />
-                      <p className="text-[10px] text-zinc-500">
+                      <p className="text-[10px] text-[var(--text-tertiary)]">
                         Paste comma-separated or one-per-line email addresses
                       </p>
                     </div>
@@ -760,18 +760,18 @@ export default function TestsPage() {
                     <div className="flex gap-3">
                       <button
                         onClick={resetForm}
-                        className="px-4 py-2 rounded-lg border border-zinc-700 text-sm text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
+                        className="px-4 py-2 rounded-lg border border-[var(--border-soft)] text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] transition-colors"
                       >
                         Skip for now
                       </button>
                       <button
                         onClick={handleInvite}
                         disabled={inviteLoading || !emailsInput.trim()}
-                        className="px-5 py-2 rounded-lg bg-emerald-600 text-sm font-medium text-white hover:bg-emerald-700 transition-all disabled:opacity-50 flex items-center gap-2"
+                        className="px-5 py-2 rounded-lg btn-primary hover:opacity-80 transition-all disabled:opacity-50 flex items-center gap-2"
                       >
                         {inviteLoading ? (
                           <>
-                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-[var(--accent-foreground)] border-t-transparent" />
                             Sending...
                           </>
                         ) : (
@@ -818,16 +818,16 @@ export default function TestsPage() {
               <p className="text-sm text-red-400 mb-3">{error}</p>
               <button
                 onClick={fetchTests}
-                className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm hover:bg-emerald-700 transition-colors"
+                className="px-4 py-2 btn-primary rounded-lg text-sm hover:opacity-80 transition-colors"
               >
                 Retry
               </button>
             </div>
           ) : tests.length === 0 ? (
             <motion.div {...fadeUp} className="text-center py-20">
-              <div className="w-16 h-16 rounded-2xl bg-zinc-800/50 border border-zinc-800 flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 rounded-lg bg-[var(--bg-secondary)]/50 border border-[var(--border-soft)] flex items-center justify-center mx-auto mb-4">
                 <svg
-                  className="w-8 h-8 text-zinc-600"
+                  className="w-8 h-8 text-[var(--text-tertiary)]"
                   fill="none"
                   viewBox="0 0 24 24"
                   strokeWidth={1.5}
@@ -840,15 +840,15 @@ export default function TestsPage() {
                   />
                 </svg>
               </div>
-              <p className="text-sm text-zinc-400 font-medium">
+              <p className="text-sm text-[var(--text-secondary)] font-medium">
                 No assessments yet
               </p>
-              <p className="text-xs text-zinc-500 mt-1">
+              <p className="text-xs text-[var(--text-tertiary)] mt-1">
                 Create your first coding challenge to get started
               </p>
               <button
                 onClick={() => setShowCreate(true)}
-                className="mt-4 px-4 py-2 rounded-lg bg-emerald-600 text-sm text-white hover:bg-emerald-700 transition-colors"
+                className="mt-4 px-4 py-2 rounded-lg btn-primary hover:opacity-80 transition-colors"
               >
                 Create Assessment
               </button>
@@ -867,14 +867,14 @@ export default function TestsPage() {
                 >
                   <Link
                     href={`/tests/${test._id}`}
-                    className="block rounded-xl border border-zinc-800 bg-zinc-900/30 p-5 hover:border-emerald-600/30 hover:shadow-lg hover:shadow-emerald-600/5 transition-all duration-300 group"
+                    className="block rounded-lg border border-[var(--border-soft)] bg-[var(--bg-surface)]/30 p-5 hover:border-[var(--accent-primary)]/20 hover:shadow-lg hover:shadow-[var(--accent-primary)]/5 transition-all duration-300 group"
                   >
                     <div className="flex items-start justify-between mb-2">
-                      <h3 className="font-semibold text-sm group-hover:text-emerald-400 transition-colors line-clamp-1">
+                      <h3 className="font-semibold text-sm group-hover:text-[var(--text-primary)] transition-colors line-clamp-1">
                         {test.title}
                       </h3>
                       <svg
-                        className="w-4 h-4 text-zinc-600 group-hover:text-emerald-400 shrink-0 ml-2 transition-colors"
+                        className="w-4 h-4 text-[var(--text-tertiary)] group-hover:text-[var(--text-primary)] shrink-0 ml-2 transition-colors"
                         fill="none"
                         viewBox="0 0 24 24"
                         strokeWidth={2}
@@ -887,25 +887,25 @@ export default function TestsPage() {
                         />
                       </svg>
                     </div>
-                    <p className="text-xs text-zinc-400 line-clamp-2 mb-3">
+                    <p className="text-xs text-[var(--text-secondary)] line-clamp-2 mb-3">
                       {test.description}
                     </p>
                     <div className="flex items-center gap-2">
                       <span
-                        className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${test.difficulty === "easy"
-                            ? "bg-emerald-500/20 text-emerald-400"
-                            : test.difficulty === "medium"
-                              ? "bg-amber-500/20 text-amber-400"
-                              : "bg-red-500/20 text-red-400"
+                        className={`px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase ${test.difficulty === "easy"
+                          ? "bg-[var(--accent-primary)]/15 text-[var(--accent-foreground)]"
+                          : test.difficulty === "medium"
+                            ? "bg-amber-500/20 text-amber-400"
+                            : "bg-red-500/20 text-red-400"
                           }`}
                       >
                         {test.difficulty}
                       </span>
-                      <span className="text-[10px] text-zinc-500">
+                      <span className="text-[10px] text-[var(--text-tertiary)]">
                         ⏱ {test.timeLimit}m
                       </span>
-                      <span className="text-[10px] text-zinc-500">
-                        {test.testCases?.length || 0} cases
+                      <span className="text-[10px] text-[var(--text-tertiary)]">
+                        {test.testCaseCount ?? test.testCases?.length ?? 0} cases
                       </span>
                     </div>
                   </Link>

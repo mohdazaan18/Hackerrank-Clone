@@ -13,9 +13,15 @@ export async function createTest(data: CreateTestInput) {
 }
 
 export async function getAllTests() {
-    const tests = await Test.find()
-        .sort({ createdAt: -1 })
-        .select("-testCases");
+    const tests = await Test.aggregate([
+        { $sort: { createdAt: -1 } },
+        {
+            $addFields: {
+                testCaseCount: { $size: { $ifNull: ["$testCases", []] } },
+            },
+        },
+        { $project: { testCases: 0 } },
+    ]);
     return tests;
 }
 

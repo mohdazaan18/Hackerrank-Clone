@@ -8,6 +8,7 @@ import { AxiosError } from "axios";
 import { testService } from "@/services/test.service";
 import { submissionService } from "@/services/submission.service";
 import { replayService } from "@/services/replay.service";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { executionService } from "@/services/execution.service";
 import type {
   TestCaseResult,
@@ -21,8 +22,8 @@ import type { Test, Submission } from "@/types/api.types";
 const MonacoEditor = dynamic(() => import("@monaco-editor/react"), {
   ssr: false,
   loading: () => (
-    <div className="flex items-center justify-center h-full bg-[#1e1e1e]">
-      <div className="h-6 w-6 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
+    <div className="flex items-center justify-center h-full bg-[var(--bg-surface)]">
+      <div className="h-6 w-6 animate-spin rounded-full border-2 border-[var(--accent-primary)] border-t-transparent" />
     </div>
   ),
 });
@@ -133,7 +134,8 @@ export function TestClient({ testId }: TestClientProps) {
 
   // Per-language code cache — preserves code when switching languages
   const codeByLangRef = useRef<Record<string, string>>({});
-  const testStartTimeRef = useRef(Date.now());
+  const sessionStartedAtRef = useRef(Date.now());
+  const [sessionExpiresAt, setSessionExpiresAt] = useState<number | null>(null);
 
   // Execute cooldown to prevent spam
   const executeCooldownRef = useRef(false);
@@ -145,7 +147,7 @@ export function TestClient({ testId }: TestClientProps) {
   const antiCheatRef = useRef(antiCheat);
   antiCheatRef.current = antiCheat;
 
-  // ─── Fetch Test Data ──────────────────────────────────────────
+  // ─── Fetch Test Data + Server Session ──────────────────────────
 
   useEffect(() => {
     let cancelled = false;
@@ -153,18 +155,35 @@ export function TestClient({ testId }: TestClientProps) {
     const fetchTest = async () => {
       try {
         setLoading(true);
-        const response = await testService.getTestById(testId);
+
+        // Fetch test data and server session in parallel
+        const [testResponse, sessionResponse] = await Promise.all([
+          testService.getTestById(testId),
+          submissionService.getSession(testId),
+        ]);
+
         if (cancelled) return;
 
-        if (!response.success || !response.data) {
-          setError(response.error || "Failed to load test");
+        if (!testResponse.success || !testResponse.data) {
+          setError(testResponse.error || "Failed to load test");
           return;
         }
 
-        const testData = response.data;
+        const testData = testResponse.data;
         setTest(testData);
 
-        // Attempt restore from LocalStorage
+        // Set server-authoritative timer
+        if (sessionResponse.success && sessionResponse.data) {
+          const session = sessionResponse.data;
+          // Adjust for clock offset: offset = serverTime - clientTime
+          const clockOffset = session.serverTime - Date.now();
+          // Adjust expiresAt to client clock: expiresAt_client = expiresAt_server - offset
+          const adjustedExpiresAt = session.expiresAt - clockOffset;
+          setSessionExpiresAt(adjustedExpiresAt);
+          sessionStartedAtRef.current = session.startedAt - clockOffset;
+        }
+
+        // Attempt restore from LocalStorage (code only, not timer)
         let restoredCode = "";
         let restoredLang = "";
         let restoredCodeByLang: Record<string, string> = {};
@@ -176,9 +195,6 @@ export function TestClient({ testId }: TestClientProps) {
               restoredLang = parsed.language;
               restoredCode = parsed.code;
               restoredCodeByLang = parsed.codeByLang || {};
-            }
-            if (parsed.startTime) {
-              testStartTimeRef.current = parsed.startTime;
             }
           }
         } catch (e) {
@@ -225,7 +241,6 @@ export function TestClient({ testId }: TestClientProps) {
       code: codeRef.current,
       language,
       codeByLang: codeByLangRef.current,
-      startTime: testStartTimeRef.current,
     };
 
     try {
@@ -287,7 +302,7 @@ export function TestClient({ testId }: TestClientProps) {
         pasteCount: ac.pasteCount,
         copyCount: ac.copyCount,
         firstTypedAt: ac.firstTypedAt,
-        firstSubmissionAt: Date.now() - testStartTimeRef.current,
+        firstSubmissionAt: Date.now() - sessionStartedAtRef.current,
         totalActiveTime: ac.totalActiveTime,
       });
 
@@ -355,11 +370,11 @@ export function TestClient({ testId }: TestClientProps) {
     }
   }, [test, testId, language, isExecuting]);
 
-  // ─── Timer ────────────────────────────────────────────────────
+  // ─── Timer (server-authoritative) ─────────────────────────────
 
   const { formattedTime, progress, isExpired } = useTimer({
-    timeLimitMinutes: test?.timeLimit || 60,
-    startTime: testStartTimeRef.current,
+    expiresAt: sessionExpiresAt,
+    totalMinutes: test?.timeLimit || 60,
     onExpire: () => {
       if (!hasSubmittedRef.current) {
         handleSubmit();
@@ -384,7 +399,7 @@ export function TestClient({ testId }: TestClientProps) {
         await replayService.saveSnapshot({
           testId: testId,
           code: currentCode,
-          timestamp: Date.now() - testStartTimeRef.current,
+          timestamp: Date.now() - sessionStartedAtRef.current,
         });
       } catch {
         // Silently fail — snapshots are best-effort
@@ -418,34 +433,34 @@ export function TestClient({ testId }: TestClientProps) {
 
   if (loading) {
     return (
-      <div className="h-screen flex flex-col bg-[#0d1117]">
+      <div className="h-screen flex flex-col bg-[var(--bg-body)]">
         {/* Skeleton timer bar */}
-        <div className="h-12 bg-[#161b22] border-b border-zinc-800 flex items-center justify-between px-5">
-          <div className="h-4 w-40 bg-zinc-800 rounded animate-pulse" />
-          <div className="h-6 w-24 bg-zinc-800 rounded-full animate-pulse" />
-          <div className="h-7 w-20 bg-zinc-800 rounded-lg animate-pulse" />
+        <div className="h-12 surface-card border-b border-[var(--border-soft)] flex items-center justify-between px-5">
+          <div className="h-4 w-40 bg-[var(--bg-secondary)] rounded-lg animate-pulse" />
+          <div className="h-6 w-24 bg-[var(--bg-secondary)] rounded-lg animate-pulse" />
+          <div className="h-7 w-20 bg-[var(--bg-secondary)] rounded-lg animate-pulse" />
         </div>
         <div className="flex-1 flex">
           {/* Skeleton problem panel */}
-          <div className="w-[380px] border-r border-zinc-800 p-5 space-y-4 animate-pulse">
-            <div className="h-6 w-48 bg-zinc-800 rounded" />
+          <div className="w-[380px] border-r border-[var(--border-soft)] p-5 space-y-4 animate-pulse">
+            <div className="h-6 w-48 bg-[var(--bg-secondary)] rounded-lg" />
             <div className="flex gap-2">
-              <div className="h-5 w-16 bg-zinc-800 rounded-full" />
-              <div className="h-5 w-16 bg-zinc-800 rounded-full" />
+              <div className="h-5 w-16 bg-[var(--bg-secondary)] rounded-lg" />
+              <div className="h-5 w-16 bg-[var(--bg-secondary)] rounded-lg" />
             </div>
             <div className="space-y-2 pt-2">
-              <div className="h-3 w-full bg-zinc-800 rounded" />
-              <div className="h-3 w-full bg-zinc-800 rounded" />
-              <div className="h-3 w-3/4 bg-zinc-800 rounded" />
-              <div className="h-3 w-5/6 bg-zinc-800 rounded" />
-              <div className="h-3 w-2/3 bg-zinc-800 rounded" />
+              <div className="h-3 w-full bg-[var(--bg-secondary)] rounded-lg" />
+              <div className="h-3 w-full bg-[var(--bg-secondary)] rounded-lg" />
+              <div className="h-3 w-3/4 bg-[var(--bg-secondary)] rounded-lg" />
+              <div className="h-3 w-5/6 bg-[var(--bg-secondary)] rounded-lg" />
+              <div className="h-3 w-2/3 bg-[var(--bg-secondary)] rounded-lg" />
             </div>
           </div>
           {/* Skeleton editor */}
-          <div className="flex-1 bg-[#1e1e1e] flex items-center justify-center">
+          <div className="flex-1 bg-[var(--bg-surface)] flex items-center justify-center">
             <div className="flex flex-col items-center gap-3">
-              <div className="h-10 w-10 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent" />
-              <p className="text-sm text-zinc-500">Loading assessment...</p>
+              <div className="h-10 w-10 animate-spin rounded-full border-4 border-[var(--accent-primary)] border-t-transparent" />
+              <p className="text-sm text-[var(--text-secondary)]">Loading assessment...</p>
             </div>
           </div>
         </div>
@@ -459,13 +474,13 @@ export function TestClient({ testId }: TestClientProps) {
 
   if (error || !test) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0d1117]">
+      <div className="min-h-screen flex items-center justify-center bg-[var(--bg-body)]">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           className="text-center space-y-4 max-w-md px-4"
         >
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-red-500/10 mx-auto">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-lg bg-red-500/10 mx-auto">
             <svg
               className="w-8 h-8 text-red-400"
               fill="none"
@@ -480,13 +495,13 @@ export function TestClient({ testId }: TestClientProps) {
               />
             </svg>
           </div>
-          <h2 className="text-xl font-semibold text-white">
+          <h2 className="text-xl font-semibold text-[var(--text-primary)]">
             Failed to load assessment
           </h2>
-          <p className="text-sm text-zinc-400">{error || "Test not found"}</p>
+          <p className="text-sm text-[var(--text-secondary)]">{error || "Test not found"}</p>
           <button
             onClick={() => window.location.reload()}
-            className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 transition-colors"
+            className="inline-flex items-center gap-2 rounded-lg btn-primary px-4 py-2 text-sm font-medium text-[var(--accent-foreground)] hover:opacity-80 transition-colors"
           >
             Try again
           </button>
@@ -505,7 +520,7 @@ export function TestClient({ testId }: TestClientProps) {
     const isPending = submission.status === "pending";
 
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0d1117]">
+      <div className="min-h-screen flex items-center justify-center bg-[var(--bg-body)]">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -517,10 +532,10 @@ export function TestClient({ testId }: TestClientProps) {
             initial={{ scale: 0, rotate: -180 }}
             animate={{ scale: 1, rotate: 0 }}
             transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-            className={`inline-flex items-center justify-center w-20 h-20 rounded-full mx-auto ${isPending
+            className={`inline-flex items-center justify-center w-20 h-20 rounded-lg mx-auto ${isPending
               ? "bg-blue-500/10"
               : isPassed
-                ? "bg-emerald-500/10"
+                ? "bg-[var(--bg-surface-hover)]"
                 : "bg-amber-500/10"
               }`}
           >
@@ -528,7 +543,7 @@ export function TestClient({ testId }: TestClientProps) {
               <div className="h-8 w-8 animate-spin rounded-full border-3 border-blue-400 border-t-transparent" />
             ) : isPassed ? (
               <svg
-                className="w-10 h-10 text-emerald-400"
+                className="w-10 h-10 text-[var(--text-primary)]"
                 fill="none"
                 viewBox="0 0 24 24"
                 strokeWidth={2}
@@ -563,14 +578,14 @@ export function TestClient({ testId }: TestClientProps) {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
           >
-            <h2 className="text-2xl font-bold text-white">
+            <h2 className="text-2xl font-bold text-[var(--text-primary)]">
               {isPending
                 ? "Evaluating Your Code..."
                 : isPassed
                   ? "Submission Successful!"
                   : "Time Expired"}
             </h2>
-            <p className="text-zinc-400 mt-2 text-sm">
+            <p className="text-[var(--text-secondary)] mt-2 text-sm">
               {isPending
                 ? "Your code is being reviewed. This may take a moment."
                 : isTimedOut
@@ -584,50 +599,50 @@ export function TestClient({ testId }: TestClientProps) {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6, ease: "easeOut" as const }}
-            className="rounded-xl border border-zinc-800 bg-zinc-900/50 backdrop-blur p-6 text-left space-y-4"
+            className="rounded-lg border border-[var(--border-soft)] surface-card backdrop-blur p-6 text-left space-y-4"
           >
             {isPending ? (
               <div className="space-y-3 animate-pulse">
                 <div className="flex justify-between">
-                  <div className="h-4 w-20 bg-zinc-800 rounded" />
-                  <div className="h-4 w-28 bg-zinc-800 rounded" />
+                  <div className="h-4 w-20 bg-[var(--bg-secondary)] rounded-lg" />
+                  <div className="h-4 w-28 bg-[var(--bg-secondary)] rounded-lg" />
                 </div>
                 <div className="flex justify-between">
-                  <div className="h-4 w-24 bg-zinc-800 rounded" />
-                  <div className="h-4 w-16 bg-zinc-800 rounded" />
+                  <div className="h-4 w-24 bg-[var(--bg-secondary)] rounded-lg" />
+                  <div className="h-4 w-16 bg-[var(--bg-secondary)] rounded-lg" />
                 </div>
                 <div className="flex justify-between">
-                  <div className="h-4 w-28 bg-zinc-800 rounded" />
-                  <div className="h-4 w-20 bg-zinc-800 rounded" />
+                  <div className="h-4 w-28 bg-[var(--bg-secondary)] rounded-lg" />
+                  <div className="h-4 w-20 bg-[var(--bg-secondary)] rounded-lg" />
                 </div>
               </div>
             ) : (
               <>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-zinc-400">Status</span>
+                  <span className="text-sm text-[var(--text-secondary)]">Status</span>
                   <span
-                    className={`text-sm font-semibold ${isPassed ? "text-emerald-400" : "text-amber-400"}`}
+                    className={`text-sm font-semibold ${isPassed ? "text-[var(--text-primary)]" : "text-amber-400"}`}
                   >
                     {isPassed ? "✓ Completed" : "⏱ Timed Out"}
                   </span>
                 </div>
-                <div className="w-full h-px bg-zinc-800" />
+                <div className="w-full h-px bg-[var(--bg-secondary)]" />
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-zinc-400">Language</span>
-                  <span className="text-sm text-white font-medium">
+                  <span className="text-sm text-[var(--text-secondary)]">Language</span>
+                  <span className="text-sm text-[var(--text-primary)] font-medium">
                     {LANGUAGE_MAP[submission.language]?.icon}{" "}
                     {LANGUAGE_MAP[submission.language]?.label ||
                       submission.language}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-zinc-400">Test Cases</span>
-                  <span className="text-sm text-white font-bold">
+                  <span className="text-sm text-[var(--text-secondary)]">Test Cases</span>
+                  <span className="text-sm text-[var(--text-primary)] font-bold">
                     {submission.testCaseScore}%
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-zinc-400">
+                  <span className="text-sm text-[var(--text-secondary)]">
                     Score Percentage
                   </span>
                   <span className="text-sm text-blue-400 font-bold">
@@ -635,20 +650,20 @@ export function TestClient({ testId }: TestClientProps) {
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-zinc-400">Execution Time</span>
-                  <span className="text-sm text-white">
+                  <span className="text-sm text-[var(--text-secondary)]">Execution Time</span>
+                  <span className="text-sm text-[var(--text-primary)]">
                     {submission.executionTime}ms
                   </span>
                 </div>
                 {/* Score bar */}
                 <div className="pt-1">
                   <div className="flex justify-between text-xs mb-1.5">
-                    <span className="text-zinc-500">Score</span>
-                    <span className="text-emerald-400 font-bold">
+                    <span className="text-[var(--text-secondary)]">Score</span>
+                    <span className="text-[var(--text-primary)] font-bold">
                       {(submission.scorePercentage ?? 0).toFixed(2)}%
                     </span>
                   </div>
-                  <div className="h-2 w-full rounded-full bg-zinc-800 overflow-hidden">
+                  <div className="h-2 w-full rounded-lg bg-[var(--bg-secondary)] overflow-hidden">
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${submission.scorePercentage ?? 0}%` }}
@@ -657,8 +672,8 @@ export function TestClient({ testId }: TestClientProps) {
                         duration: 1,
                         ease: "easeOut" as const,
                       }}
-                      className={`h-full rounded-full ${(submission.scorePercentage ?? 0) >= 80
-                        ? "bg-emerald-500"
+                      className={`h-full rounded-lg ${(submission.scorePercentage ?? 0) >= 80
+                        ? "bg-[var(--accent-primary)]"
                         : (submission.scorePercentage ?? 0) >= 50
                           ? "bg-amber-500"
                           : "bg-red-500"
@@ -678,7 +693,7 @@ export function TestClient({ testId }: TestClientProps) {
           >
             <button
               onClick={() => router.push("/result")}
-              className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-600/20"
+              className="inline-flex items-center gap-2 rounded-lg btn-primary px-6 py-2.5 text-sm font-medium text-[var(--accent-foreground)] hover:opacity-80 transition-all "
             >
               View Results
               <svg
@@ -712,30 +727,30 @@ export function TestClient({ testId }: TestClientProps) {
     ? "text-red-400"
     : progress < 20
       ? "text-amber-400"
-      : "text-emerald-400";
+      : "text-[var(--text-primary)]";
 
   const timerBg = isExpired
     ? "bg-red-500/10 border-red-500/30"
     : progress < 20
       ? "bg-amber-500/10 border-amber-500/30"
-      : "bg-emerald-500/10 border-emerald-500/30";
+      : "bg-[var(--bg-surface-hover)] border-[var(--accent-primary)]/20";
 
   const barColor = isExpired
     ? "bg-red-500"
     : progress < 20
       ? "bg-amber-500"
-      : "bg-emerald-500";
+      : "bg-[var(--accent-primary)]";
 
   return (
-    <div style={{ height: "100dvh" }} className="flex flex-col bg-[#0d1117] text-white overflow-hidden">
+    <div style={{ height: "100dvh" }} className="flex flex-col bg-[var(--bg-body)] text-[var(--text-primary)] overflow-hidden">
       {/* ═══════════════════════════════════════════════════════ */}
       {/* HEADER BAR (8dvh)                                       */}
       {/* ═══════════════════════════════════════════════════════ */}
-      <header style={{ height: "8dvh", minHeight: "48px" }} className="flex items-center justify-between px-4 bg-[#161b22] border-b border-zinc-800/60 shrink-0 z-40">
+      <header style={{ height: "8dvh", minHeight: "48px" }} className="flex items-center justify-between px-4 surface-card border-b border-[var(--border-soft)] shrink-0 z-40">
         {/* Left: Timer */}
         <div className="flex items-center gap-3">
           <div
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-sm font-mono font-bold ${timerBg} ${timerColor}`}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-mono font-bold ${timerBg} ${timerColor}`}
           >
             <div
               className={`w-1.5 h-1.5 rounded-full ${barColor} ${progress < 20 && !isExpired ? "animate-pulse" : ""}`}
@@ -743,9 +758,9 @@ export function TestClient({ testId }: TestClientProps) {
             {formattedTime}
           </div>
           {/* Progress bar */}
-          <div className="w-32 h-1.5 bg-zinc-800 rounded-full overflow-hidden hidden sm:block">
+          <div className="w-32 h-1.5 bg-[var(--bg-secondary)] rounded-lg overflow-hidden hidden sm:block">
             <motion.div
-              className={`h-full rounded-full ${barColor}`}
+              className={`h-full rounded-lg ${barColor}`}
               initial={{ width: "100%" }}
               animate={{ width: `${progress}%` }}
               transition={{ duration: 1, ease: "linear" }}
@@ -753,7 +768,7 @@ export function TestClient({ testId }: TestClientProps) {
           </div>
         </div>
 
-        {/* Right: Language Dropdown */}
+        {/* Right: Language Dropdown + Theme Toggle */}
         <div className="flex items-center gap-3">
           <select
             value={language}
@@ -768,7 +783,7 @@ export function TestClient({ testId }: TestClientProps) {
               setCode(restored);
               codeRef.current = restored;
             }}
-            className="bg-zinc-800/90 border border-zinc-700/50 rounded-lg px-3 py-1.5 text-sm font-medium text-zinc-200 focus:outline-none focus:ring-1 focus:ring-emerald-500/50 cursor-pointer shadow-sm"
+            className="bg-[var(--bg-secondary)] border border-[var(--border-soft)] rounded-lg px-3 py-1.5 text-sm font-medium text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)]/40 cursor-pointer shadow-sm"
           >
             {test.supportedLanguages.map((lang) => (
               <option key={lang} value={lang}>
@@ -776,6 +791,7 @@ export function TestClient({ testId }: TestClientProps) {
               </option>
             ))}
           </select>
+          <ThemeToggle />
         </div>
       </header>
 
@@ -791,10 +807,10 @@ export function TestClient({ testId }: TestClientProps) {
               animate={{ width: 380, opacity: 1 }}
               exit={{ width: 0, opacity: 0 }}
               transition={{ duration: 0.25, ease: "easeInOut" as const }}
-              className="md:w-[380px] shrink-0 border-b md:border-b-0 md:border-r border-zinc-800 flex flex-col bg-[#0d1117] overflow-hidden min-w-0"
+              className="md:w-[380px] shrink-0 border-b md:border-b-0 md:border-r border-[var(--border-soft)] flex flex-col bg-[var(--bg-body)] overflow-hidden min-w-0"
             >
               {/* Tabs */}
-              <div className="flex border-b border-zinc-800 shrink-0">
+              <div className="flex border-b border-[var(--border-soft)] shrink-0">
                 {[
                   {
                     key: "description" as const,
@@ -811,8 +827,8 @@ export function TestClient({ testId }: TestClientProps) {
                     key={tab.key}
                     onClick={() => setActiveTab(tab.key)}
                     className={`flex-1 px-4 py-2.5 text-xs font-medium transition-all relative ${activeTab === tab.key
-                      ? "text-emerald-400"
-                      : "text-zinc-500 hover:text-zinc-300"
+                      ? "text-[var(--text-primary)]"
+                      : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                       }`}
                   >
                     <span>
@@ -821,7 +837,7 @@ export function TestClient({ testId }: TestClientProps) {
                     {activeTab === tab.key && (
                       <motion.div
                         layoutId="tab-indicator"
-                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-500"
+                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--accent-primary)]"
                       />
                     )}
                   </button>
@@ -842,8 +858,8 @@ export function TestClient({ testId }: TestClientProps) {
                       <h1 className="text-lg font-bold">{test.title}</h1>
                       <div className="flex gap-2 mt-2">
                         <span
-                          className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${test.difficulty === "easy"
-                            ? "bg-emerald-500/20 text-emerald-400"
+                          className={`px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase ${test.difficulty === "easy"
+                            ? "bg-[var(--accent-primary)]/15 text-[var(--accent-foreground)]"
                             : test.difficulty === "medium"
                               ? "bg-amber-500/20 text-amber-400"
                               : "bg-red-500/20 text-red-400"
@@ -851,11 +867,11 @@ export function TestClient({ testId }: TestClientProps) {
                         >
                           {test.difficulty}
                         </span>
-                        <span className="px-2 py-0.5 rounded bg-blue-500/15 text-blue-400 text-[10px] font-bold">
+                        <span className="px-2 py-0.5 rounded-lg bg-blue-500/15 text-blue-400 text-[10px] font-bold">
                           {test.timeLimit} MIN
                         </span>
                       </div>
-                      <div className="text-sm text-zinc-300 leading-relaxed whitespace-pre-wrap mt-4">
+                      <div className="text-sm text-[var(--text-primary)] leading-relaxed whitespace-pre-wrap mt-4">
                         {test.description}
                       </div>
                     </motion.div>
@@ -869,32 +885,32 @@ export function TestClient({ testId }: TestClientProps) {
                       className="space-y-3"
                     >
                       {visibleTestCases.length === 0 ? (
-                        <p className="text-sm text-zinc-500">
+                        <p className="text-sm text-[var(--text-secondary)]">
                           No visible test cases.
                         </p>
                       ) : (
                         visibleTestCases.map((tc, idx) => (
                           <div
                             key={idx}
-                            className="rounded-lg border border-zinc-800 bg-[#161b22]/50 p-3 space-y-2"
+                            className="rounded-lg border border-[var(--border-soft)] surface-card/50 p-3 space-y-2"
                           >
-                            <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
+                            <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">
                               Case #{idx + 1}
                             </p>
                             <div className="space-y-1">
-                              <p className="text-[10px] uppercase text-zinc-600 font-medium">
+                              <p className="text-[10px] uppercase text-[var(--text-tertiary)] font-medium">
                                 Input
                               </p>
-                              <pre className="text-xs bg-[#0d1117] rounded-md px-2.5 py-2 text-emerald-300 overflow-x-auto border border-zinc-800/50 font-mono">
+                              <pre className="text-xs bg-[var(--bg-body)] rounded-lg px-2.5 py-2 text-[var(--accent-primary)] overflow-x-auto border border-[var(--border-soft)]/50 font-mono">
                                 {tc.input}
                               </pre>
                             </div>
                             {tc.expectedOutput && (
                               <div className="space-y-1">
-                                <p className="text-[10px] uppercase text-zinc-600 font-medium">
+                                <p className="text-[10px] uppercase text-[var(--text-tertiary)] font-medium">
                                   Expected Output
                                 </p>
-                                <pre className="text-xs bg-[#0d1117] rounded-md px-2.5 py-2 text-emerald-300 overflow-x-auto border border-zinc-800/50 font-mono">
+                                <pre className="text-xs bg-[var(--bg-body)] rounded-lg px-2.5 py-2 text-[var(--accent-primary)] overflow-x-auto border border-[var(--border-soft)]/50 font-mono">
                                   {tc.expectedOutput}
                                 </pre>
                               </div>
@@ -913,8 +929,8 @@ export function TestClient({ testId }: TestClientProps) {
         {/* ─── Right Panel: Editor ──────────────────────────── */}
         <div className="flex-1 flex flex-col min-w-0 min-h-0">
           {/* Editor Toolbar */}
-          <div className="flex items-center justify-between px-3 py-1.5 bg-[#161b22] border-b border-zinc-800 shrink-0">
-            <div className="flex items-center gap-2 text-[11px] text-zinc-400 font-medium tracking-wide uppercase">
+          <div className="flex items-center justify-between px-3 py-1.5 surface-card border-b border-[var(--border-soft)] shrink-0">
+            <div className="flex items-center gap-2 text-[11px] text-[var(--text-secondary)] font-medium tracking-wide uppercase">
               <span>{LANGUAGE_MAP[language]?.label || language} Editor</span>
             </div>
             <div className="flex items-center gap-1">
@@ -925,7 +941,7 @@ export function TestClient({ testId }: TestClientProps) {
                   codeRef.current = boilerplate;
                   codeByLangRef.current[language] = boilerplate;
                 }}
-                className="p-1.5 rounded-md hover:bg-zinc-700/50 text-zinc-500 hover:text-zinc-300 transition-colors"
+                className="p-1.5 rounded-lg hover:bg-[var(--bg-secondary)]/50 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
                 title="Reset to boilerplate"
               >
                 <svg
@@ -946,7 +962,7 @@ export function TestClient({ testId }: TestClientProps) {
           </div>
 
           {/* Monaco Editor — fills remaining space */}
-          <div className="flex-1 min-h-0 min-w-0 w-full overflow-hidden border border-zinc-800/40 shadow-lg shadow-emerald-500/[0.03]" onPaste={handleEditorPaste}>
+          <div className="flex-1 min-h-0 min-w-0 w-full overflow-hidden border border-[var(--border-soft)] shadow-lg shadow-[var(--accent-primary)]/[0.03]" onPaste={handleEditorPaste}>
             <MonacoEditor
               height="100%"
               width="100%"
@@ -1006,18 +1022,18 @@ export function TestClient({ testId }: TestClientProps) {
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: "auto", opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
-                className="border-t border-zinc-800 bg-zinc-900/50 max-h-64 overflow-y-auto"
+                className="border-t border-[var(--border-soft)] surface-card max-h-64 overflow-y-auto"
               >
                 <div className="p-3 space-y-2">
                   {/* Result Header */}
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-zinc-400 uppercase">
+                      <span className="text-xs font-bold text-[var(--text-secondary)] uppercase">
                         Test Results
                       </span>
                       <span
-                        className={`text-xs font-bold px-2 py-1 rounded-full ${executionResult.score === 100
-                          ? "bg-emerald-500/20 text-emerald-400"
+                        className={`text-xs font-bold px-2 py-1 rounded-lg ${executionResult.score === 100
+                          ? "bg-[var(--accent-primary)]/15 text-[var(--accent-foreground)]"
                           : executionResult.score >= 50
                             ? "bg-amber-500/20 text-amber-400"
                             : "bg-red-500/20 text-red-400"
@@ -1029,7 +1045,7 @@ export function TestClient({ testId }: TestClientProps) {
                     </div>
                     <button
                       onClick={() => setExecutionResult(null)}
-                      className="text-zinc-500 hover:text-zinc-300 transition-colors"
+                      className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
                     >
                       ✕
                     </button>
@@ -1038,18 +1054,18 @@ export function TestClient({ testId }: TestClientProps) {
                   {/* Score Bar */}
                   <div className="space-y-1">
                     <div className="flex justify-between text-[10px]">
-                      <span className="text-zinc-500">Score</span>
-                      <span className="text-zinc-300 font-bold">
+                      <span className="text-[var(--text-secondary)]">Score</span>
+                      <span className="text-[var(--text-primary)] font-bold">
                         {executionResult.score}%
                       </span>
                     </div>
-                    <div className="h-1.5 w-full rounded-full bg-zinc-800 overflow-hidden">
+                    <div className="h-1.5 w-full rounded-lg bg-[var(--bg-secondary)] overflow-hidden">
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${executionResult.score}%` }}
                         transition={{ duration: 0.6, ease: "easeOut" }}
-                        className={`h-full rounded-full ${executionResult.score === 100
-                          ? "bg-emerald-500"
+                        className={`h-full rounded-lg ${executionResult.score === 100
+                          ? "bg-[var(--accent-primary)]"
                           : executionResult.score >= 50
                             ? "bg-amber-500"
                             : "bg-red-500"
@@ -1063,14 +1079,14 @@ export function TestClient({ testId }: TestClientProps) {
                     {executionResult.results.map((result) => (
                       <div
                         key={result.caseNumber}
-                        className="rounded-md bg-[#0d1117] border border-zinc-800/50 p-2 text-[11px] space-y-1"
+                        className="rounded-lg bg-[var(--bg-body)] border border-[var(--border-soft)]/50 p-2 text-[11px] space-y-1"
                       >
                         <div className="flex items-center justify-between">
-                          <span className="font-mono text-zinc-400">
+                          <span className="font-mono text-[var(--text-secondary)]">
                             Case #{result.caseNumber}
                           </span>
                           {result.passed ? (
-                            <span className="text-emerald-400 font-bold">
+                            <span className="text-[var(--text-primary)] font-bold">
                               ✓ Passed
                             </span>
                           ) : (
@@ -1087,15 +1103,15 @@ export function TestClient({ testId }: TestClientProps) {
                         {!result.error && (
                           <>
                             {result.actualOutput !== undefined && (
-                              <div className="text-zinc-400">
-                                <span className="text-zinc-600">Output: </span>
-                                <span className="text-zinc-300 font-mono">
+                              <div className="text-[var(--text-secondary)]">
+                                <span className="text-[var(--text-tertiary)]">Output: </span>
+                                <span className="text-[var(--text-primary)] font-mono">
                                   {result.actualOutput?.slice(0, 50) || "(empty)"}
                                 </span>
                               </div>
                             )}
                             {result.executionTime !== undefined && (
-                              <div className="text-zinc-500 text-[10px]">
+                              <div className="text-[var(--text-secondary)] text-[10px]">
                                 {result.executionTime}ms • {result.memory}KB
                               </div>
                             )}
@@ -1110,41 +1126,39 @@ export function TestClient({ testId }: TestClientProps) {
           </AnimatePresence>
 
           {/* ─── Bottom Action Bar ──────────────────────────── */}
-          <div style={{ minHeight: "70px" }} className="sticky bottom-0 flex items-center justify-between px-4 py-3 bg-[#161b22] border-t border-zinc-800/60 shrink-0 z-40">
+          <div style={{ height: "10dvh", minHeight: "64px" }} className="relative flex items-center justify-between px-4 bg-[var(--bg-surface)] border-t border-[var(--border-medium)] shrink-0 z-40">
             {/* Left: Status */}
-            <div className="flex items-center gap-2 text-xs text-zinc-500 font-medium">
-              <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+            <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)] font-medium">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-[var(--accent-primary)]" />
               Connected
             </div>
 
             {/* Center: Score Preview (after run) */}
             {executionResult && !isExecuting && (
-              <div className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold border shadow-sm ${executionResult.scorePercentage >= 80
-                ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+              <div className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold border ${executionResult.scorePercentage >= 80
+                ? "bg-[var(--bg-surface-hover)] border-[var(--border-soft)] text-[var(--text-primary)]"
                 : executionResult.scorePercentage >= 40
-                  ? "bg-amber-500/10 border-amber-500/20 text-amber-400"
-                  : "bg-red-500/10 border-red-500/20 text-red-400"
+                  ? "bg-amber-500/10 border-amber-500/20 text-amber-500"
+                  : "bg-red-500/10 border-red-500/20 text-red-500"
                 }`}>
                 <span>{executionResult.passedCases}/{executionResult.totalCases} passed</span>
-                <span className="text-zinc-600">•</span>
+                <span className="text-[var(--text-tertiary)]">·</span>
                 <span>{executionResult.scorePercentage}%</span>
               </div>
             )}
 
             {/* Right: Action Buttons */}
-            <div className="flex items-center gap-3">
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.96 }}
+            <div className="flex items-center gap-2">
+              <button
                 onClick={handleExecute}
                 disabled={isExecuting || isSubmitting || !code.trim()}
-                style={{ minHeight: "6dvh" }}
-                className="px-5 rounded-xl border border-zinc-700/60 bg-zinc-800/40 text-sm font-semibold text-zinc-300 hover:text-white hover:bg-zinc-700 hover:border-zinc-500 hover:shadow-md hover:shadow-zinc-500/10 transition-all disabled:opacity-30 disabled:cursor-not-allowed shadow-sm flex items-center gap-2.5"
+                style={{ height: "6dvh", minHeight: "36px" }}
+                className="btn-secondary px-4 text-[13px] font-medium disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-2"
               >
                 {isExecuting ? (
                   <>
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-400 border-t-transparent" />
-                    <span>Running...</span>
+                    <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[var(--text-secondary)] border-t-transparent" />
+                    <span>Running…</span>
                   </>
                 ) : (
                   <>
@@ -1152,39 +1166,27 @@ export function TestClient({ testId }: TestClientProps) {
                     <span>Run Code</span>
                   </>
                 )}
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.96 }}
+              </button>
+              <button
                 onClick={handleSubmit}
                 disabled={isSubmitting || isExecuting || !code.trim()}
-                style={{ minHeight: "6dvh" }}
-                className="px-6 rounded-xl bg-emerald-600 text-sm font-semibold text-white hover:bg-emerald-500 hover:shadow-lg hover:shadow-emerald-500/30 transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-emerald-600/25 flex items-center gap-2.5"
+                style={{ height: "6dvh", minHeight: "36px" }}
+                className="btn-primary px-5 text-[13px] font-medium disabled:opacity-35 disabled:cursor-not-allowed flex items-center gap-2"
               >
                 {isSubmitting ? (
                   <>
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                    <span>Submitting...</span>
+                    <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[var(--accent-foreground)] border-t-transparent" />
+                    <span>Submitting…</span>
                   </>
                 ) : (
                   <>
                     <span>Submit</span>
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={2}
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"
-                      />
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
                     </svg>
                   </>
                 )}
-              </motion.button>
+              </button>
             </div>
           </div>
         </div>

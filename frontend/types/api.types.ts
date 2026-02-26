@@ -44,6 +44,7 @@ export interface Test {
   timeLimit: number;
   supportedLanguages: string[];
   testCases: TestCase[];
+  testCaseCount?: number;
   createdAt: string;
   updatedAt: string;
 }

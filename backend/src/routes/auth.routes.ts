@@ -14,7 +14,7 @@ router.post("/admin/login", loginLimiter, adminLogin);
 // POST /auth/candidate/login
 router.post("/candidate/login", loginLimiter, candidateLogin);
 
-// POST /auth/logout
-router.post("/logout", authenticate, logout);
+// POST /auth/logout — no auth required so expired tokens still get cleared
+router.post("/logout", logout);
 
 export default router;
