@@ -57,7 +57,7 @@ export async function getTestById(
             const sanitized = test.toObject() as any;
             sanitized.testCases = sanitized.testCases
                 .filter((tc: any) => !tc.hidden)
-                .map((tc: any) => ({ input: tc.input }));
+                .map((tc: any) => ({ input: tc.input, expectedOutput: tc.expectedOutput }));
             sendSuccess(res, sanitized);
             return;
         }

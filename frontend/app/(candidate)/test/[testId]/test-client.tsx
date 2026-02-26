@@ -3,12 +3,13 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
+import { useAuth } from "@/hooks/use-auth";
 import { motion, AnimatePresence } from "framer-motion";
 import { AxiosError } from "axios";
 import { testService } from "@/services/test.service";
 import { submissionService } from "@/services/submission.service";
 import { replayService } from "@/services/replay.service";
-import { ThemeToggle } from "@/components/theme-toggle";
+
 import { executionService } from "@/services/execution.service";
 import type {
   TestCaseResult,
@@ -106,6 +107,11 @@ interface TestClientProps {
 
 export function TestClient({ testId }: TestClientProps) {
   const router = useRouter();
+  const { user } = useAuth();
+
+  // Safe identifier for cache
+  const userIdAttr = user ? ("id" in user ? (user as any).id : "email" in user ? (user as any).email : "guest") : "guest";
+  const CACHE_KEY = `test-session-${testId}-${userIdAttr}`;
 
   // ─── State ────────────────────────────────────────────────────
   const [test, setTest] = useState<Test | null>(null);
@@ -162,6 +168,13 @@ export function TestClient({ testId }: TestClientProps) {
           submissionService.getSession(testId),
         ]);
 
+        try {
+          localStorage.removeItem(CACHE_KEY);
+          sessionStorage.removeItem(`execution-cache-${testId}`);
+        } catch (e) {
+          // Ignore errors
+        }
+
         if (cancelled) return;
 
         if (!testResponse.success || !testResponse.data) {
@@ -188,7 +201,7 @@ export function TestClient({ testId }: TestClientProps) {
         let restoredLang = "";
         let restoredCodeByLang: Record<string, string> = {};
         try {
-          const saved = localStorage.getItem(`test-session-${testId}`);
+          const saved = localStorage.getItem(CACHE_KEY);
           if (saved) {
             const parsed = JSON.parse(saved);
             if (parsed.language && parsed.code) {
@@ -236,7 +249,6 @@ export function TestClient({ testId }: TestClientProps) {
     // Only save if code exists and test is loaded
     if (!test || hasSubmittedRef.current || !language) return;
 
-    const cacheKey = `test-session-${testId}`;
     const saveData = {
       code: codeRef.current,
       language,
@@ -244,7 +256,7 @@ export function TestClient({ testId }: TestClientProps) {
     };
 
     try {
-      localStorage.setItem(cacheKey, JSON.stringify(saveData));
+      localStorage.setItem(CACHE_KEY, JSON.stringify(saveData));
     } catch (e) {
       // Ignore quota limits natively
     }
@@ -791,7 +803,6 @@ export function TestClient({ testId }: TestClientProps) {
               </option>
             ))}
           </select>
-          <ThemeToggle />
         </div>
       </header>
 

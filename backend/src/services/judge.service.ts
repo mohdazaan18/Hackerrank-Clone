@@ -10,6 +10,7 @@ import { createAppError } from "../utils/apiResponse";
 export interface TestCaseResult {
   caseNumber: number;
   passed: boolean;
+  hidden: boolean;
   input: string;
   expectedOutput: string;
   actualOutput: string;
@@ -19,13 +20,18 @@ export interface TestCaseResult {
   memory?: number;
 }
 
+// Public response shape — hidden test cases only return passed/caseNumber
+export type PublicTestCaseResult =
+  | { caseNumber: number; passed: boolean; hidden: true }
+  | { caseNumber: number; passed: boolean; hidden: false; input: string; expectedOutput: string; actualOutput: string; error?: string; errorType?: "compile" | "runtime" | "timeout" };
+
 export interface ExecuteCodeResponse {
   success: boolean;
   totalCases: number;
   passedCases: number;
   score: number;
   scorePercentage: number;
-  results: TestCaseResult[];
+  results: PublicTestCaseResult[];
 }
 
 // ─── JDoodle Language Map ───────────────────────────────────────
@@ -56,12 +62,16 @@ export function wrapCode(candidateCode: string, language: string): string {
       return `${candidateCode}
 
 // --- Auto-injected IO wrapper ---
+if (typeof solve !== "function") {
+  process.stderr.write("Error: solve() function is not defined.\\n");
+  process.exit(1);
+}
 process.stdin.resume();
 process.stdin.setEncoding("utf-8");
-let __input = "";
-process.stdin.on("data", (c) => { __input += c; });
+let __$stdin$__ = "";
+process.stdin.on("data", (c) => { __$stdin$__ += c; });
 process.stdin.on("end", () => {
-  const lines = __input.trim().split("\n");
+  const lines = __$stdin$__.trim().split("\\n");
   const result = solve(lines);
   if (result !== undefined && result !== null) console.log(result);
 });
@@ -72,7 +82,10 @@ process.stdin.on("end", () => {
 
 # --- Auto-injected IO wrapper ---
 import sys as __sys
-__input_data = __sys.stdin.read().strip().split("\n")
+if 'solve' not in dir():
+    __sys.stderr.write("Error: solve() function is not defined.\\n")
+    __sys.exit(1)
+__input_data = __sys.stdin.read().strip().split("\\n")
 __result = solve(__input_data)
 if __result is not None:
     print(__result)
@@ -93,8 +106,6 @@ ${candidateCode}
             String line = sc.nextLine();
             input.add(line);
         }
-        Main m = new Main();
-        // Try static method first
         System.out.println(solve(input));
     }
 }
@@ -324,9 +335,11 @@ export async function executeCode(data: {
   for (let i = 0; i < testCases.length; i++) {
     const tc = testCases[i];
     const caseNumber = i + 1;
+    const isHidden = tc.hidden === true;
     const result: TestCaseResult = {
       caseNumber,
       passed: false,
+      hidden: isHidden,
       input: tc.input,
       expectedOutput: tc.expectedOutput,
       actualOutput: "",
@@ -382,7 +395,24 @@ export async function executeCode(data: {
   const score = testCases.length > 0 ? Math.round((passedCases / testCases.length) * 100) : 0;
   const scorePercentage = testCases.length > 0 ? Math.round((passedCases / testCases.length) * 10000) / 100 : 0;
 
-  return { success: true, totalCases: testCases.length, passedCases, score, scorePercentage, results };
+  // Filter results: hidden test cases only return passed/caseNumber
+  const publicResults: PublicTestCaseResult[] = results.map((r) => {
+    if (r.hidden) {
+      return { caseNumber: r.caseNumber, passed: r.passed, hidden: true as const };
+    }
+    return {
+      caseNumber: r.caseNumber,
+      passed: r.passed,
+      hidden: false as const,
+      input: r.input,
+      expectedOutput: r.expectedOutput,
+      actualOutput: r.actualOutput,
+      ...(r.error && { error: r.error }),
+      ...(r.errorType && { errorType: r.errorType }),
+    };
+  });
+
+  return { success: true, totalCases: testCases.length, passedCases, score, scorePercentage, results: publicResults };
 }
 
 // ─── Evaluate Submission ────────────────────────────────────────
