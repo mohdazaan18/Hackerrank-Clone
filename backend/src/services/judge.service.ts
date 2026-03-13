@@ -265,12 +265,26 @@ export async function callJDoodle(
 
     if (!response.ok) {
       const text = await response.text();
+      let errorData;
+      try {
+        errorData = JSON.parse(text);
+      } catch {
+        errorData = text;
+      }
+
+      console.error(`[JDoodle] API error (${response.status}):`, errorData);
+
+      if (response.status === 403) {
+        throw new Error("JDoodle authentication failed (403). Check your Client ID and Secret.");
+      }
+
       throw new Error(`JDoodle API error (${response.status}): ${text}`);
     }
 
     const data = (await response.json()) as JDoodleResponse;
 
     if (data.error) {
+      console.error("[JDoodle] API response error field:", data.error);
       if (data.error.includes("Daily limit")) {
         throw new Error("Execution limit reached. Try later.");
       }
